@@ -16,17 +16,18 @@ function parseColorString(color: string) {
     return colorString.get(color);
 }
 
-function toHSL(color: string): [number, number, number, number] {
+function toHSL(color: string): [number, number, number] {
     const item = parseColorString(color);
     if (item) {
         if (item.model === 'hsl') {
-            return item.value;
+            // color-string may return hsl with alpha: [h, s, l, a]. Only take first 3 values.
+            return [item.value[0], item.value[1], item.value[2]] as [number, number, number];
         }
         if (item.model === 'rgb') {
-            return rgb.hsl(item.value);
+            return rgb.hsl(item.value.slice(0, 3) as [number, number, number]);
         }
         if (item.model === 'hwb') {
-            return hwb.hsl(item.value);
+            return hwb.hsl(item.value.slice(0, 3) as [number, number, number]);
         }
     }
     throw new Error(`cannot parse color ${color}`);
