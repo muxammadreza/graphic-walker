@@ -17,6 +17,7 @@
     "singleQuote": true
   },
   "dependencies": {
+    "@duckdb/duckdb-wasm": "^1.28.0",
     "@headlessui/react": "1.7.12",
     "@heroicons/react": "^2.0.8",
     "@kanaries/duckdb-computation": "0.0.1",
