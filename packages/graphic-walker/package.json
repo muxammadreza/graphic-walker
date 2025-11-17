@@ -28,9 +28,9 @@
   "module": "./dist/graphic-walker.es.js",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/graphic-walker.es.js",
-      "require": "./dist/graphic-walker.umd.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/graphic-walker.umd.js"
     },
     "./dist/style.css": {
       "import": "./dist/style.css",
