@@ -394,6 +394,7 @@ export interface IVisualConfig {
     geoUrl?: IGeoUrl;
     limit: number;
     folds?: string[];
+    serpentine?: ISerpentineConfig;
 }
 
 export interface IConfigScaleSet {
@@ -404,6 +405,21 @@ export interface IConfigScaleSet {
     size?: IConfigScale;
     radius?: IConfigScale;
     theta?: IConfigScale;
+}
+
+export interface ISerpentineConfig {
+    width: number;
+    sH: number;
+    labelsOnHover: boolean;
+    sN: number;
+    tC: number;
+    mO: number;
+    sR0P: number;
+    sLP: number;
+    annotationStart: string;
+    annotationEnd: string;
+    includeArrows: boolean;
+    sT: number;
 }
 
 export interface IVisualLayout {
@@ -454,6 +470,7 @@ export interface IVisualConfigNew {
     limit: number;
     folds?: string[];
     timezoneDisplayOffset?: number;
+    serpentine?: ISerpentineConfig;
 }
 
 export interface IGeoUrl {

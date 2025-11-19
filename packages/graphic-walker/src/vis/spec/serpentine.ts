@@ -1,4 +1,4 @@
-import { IRow, IViewField } from '../../interfaces';
+import { IRow, IViewField, ISerpentineConfig } from '../../interfaces';
 
 export interface SerpentineSpecProps {
     dataSource: readonly IRow[];
@@ -7,6 +7,7 @@ export interface SerpentineSpecProps {
     colorField: IViewField | null;
     width: number;
     height: number;
+    config?: ISerpentineConfig;
 }
 
 /**
@@ -14,7 +15,25 @@ export interface SerpentineSpecProps {
  * Based on the reference implementation provided.
  */
 export function toSerpentineSpec(props: SerpentineSpecProps) {
-    const { dataSource, dateField, labelField, colorField, width } = props;
+    const { dataSource, dateField, labelField, colorField, width, config } = props;
+
+    // Default values matching the UI defaults
+    const defaults: ISerpentineConfig = {
+        width: width,
+        sH: 125,
+        labelsOnHover: false,
+        sN: 2.2,
+        tC: 21,
+        mO: 35,
+        sR0P: 0,
+        sLP: 1,
+        annotationStart: '',
+        annotationEnd: '',
+        includeArrows: true,
+        sT: 5,
+    };
+
+    const c = { ...defaults, ...config };
 
     // Transform data to the format expected by the spec
     // The spec expects [{"domain": number, "label": string}]
@@ -50,19 +69,25 @@ export function toSerpentineSpec(props: SerpentineSpecProps) {
         $schema: 'https://vega.github.io/schema/vega/v6.json',
         description: 'A serpentine timeline visualization.',
         padding: 15,
-        width: width,
-        autosize: { type: 'fit', contains: 'padding' },
+        width: c.width,
         signals: [
             {
                 name: 'width',
-                value: width,
-                bind: {
-                    name: 'straight width',
-                    input: 'range',
-                    min: 0,
-                    max: 2000,
-                    step: 1,
-                },
+                init: 'width',
+                on: [
+                    { events: [{ signal: 'annotations' }], update: 'width+1' },
+                    { events: [{ signal: 'annotations' }], update: 'width-1' },
+                    { events: [{ signal: 'mO' }], update: 'width+1' },
+                    { events: [{ signal: 'mO' }], update: 'width-1' },
+                    { events: [{ signal: 'tLO' }], update: 'width+1' },
+                    { events: [{ signal: 'tLO' }], update: 'width-1' },
+                    { events: [{ signal: 'sN' }], update: 'width+1' },
+                    { events: [{ signal: 'sN' }], update: 'width-1' },
+                    { events: [{ signal: 'mO' }], update: 'height+1' },
+                    { events: [{ signal: 'mO' }], update: 'height-1' },
+                    { events: [{ signal: 'tLO' }], update: 'height+1' },
+                    { events: [{ signal: 'tLO' }], update: 'height-1' },
+                ],
             },
             {
                 name: 'geom',
@@ -71,44 +96,22 @@ export function toSerpentineSpec(props: SerpentineSpecProps) {
             {
                 name: 'sH',
                 description: 'serpentine: diameter of arcs',
-                value: 125,
-                bind: {
-                    name: 'arc diameter',
-                    input: 'range',
-                    min: 25,
-                    max: 400,
-                    step: 1,
-                },
+                value: c.sH,
             },
             {
                 name: 'labelsOnHover',
                 description: 'milestone: show labels on hover only',
-                value: false,
-                bind: { name: 'hover labels', input: 'checkbox' },
+                value: c.labelsOnHover,
             },
             {
                 name: 'sN',
                 description: 'serpentine: number of arcs',
-                value: 2.2,
-                bind: {
-                    name: '# of arcs',
-                    input: 'range',
-                    min: 0,
-                    max: 20,
-                    step: 0.01,
-                },
+                value: c.sN,
             },
             {
                 name: 'tC',
                 description: 'ticks: number of axis ticks to display on the timeline',
-                value: 21,
-                bind: {
-                    name: 'tick count',
-                    input: 'range',
-                    min: 0,
-                    max: 100,
-                    step: 1,
-                },
+                value: c.tC,
             },
             {
                 name: 'tLO',
@@ -118,65 +121,34 @@ export function toSerpentineSpec(props: SerpentineSpecProps) {
             {
                 name: 'mO',
                 description: 'milestone: the offset for the milestone markers',
-                value: 35,
-                bind: {
-                    name: 'milestone offset',
-                    input: 'range',
-                    min: 0,
-                    max: 50,
-                    step: 0.5,
-                },
+                value: c.mO,
             },
             {
                 name: 'sR0P',
                 description: 'serpentine: percentage of width of canvas for the start of the timeline',
-                value: 0,
-                bind: {
-                    name: 'timeline x0 %',
-                    input: 'range',
-                    min: 0,
-                    max: 1,
-                    step: 0.01,
-                },
+                value: c.sR0P,
             },
             {
                 name: 'sLP',
                 description: 'serpentine: percentage of total length of canvas for the end of the timeline',
-                value: 1,
-                bind: {
-                    name: 'timeline len %',
-                    input: 'range',
-                    min: 0,
-                    max: 1,
-                    step: 0.01,
-                },
+                value: c.sLP,
             },
             {
                 name: 'annotationStart',
-                value: '',
-                bind: { name: 'start annotation', input: 'text' },
+                value: c.annotationStart,
             },
             {
                 name: 'annotationEnd',
-                value: '',
-                bind: { name: 'end annotation', input: 'text' },
+                value: c.annotationEnd,
             },
             {
                 name: 'includeArrows',
-                value: true,
-                bind: { name: 'include arrows', input: 'checkbox' },
+                value: c.includeArrows,
             },
             {
                 name: 'sT',
                 description: 'serpentine: thicknes of the line',
-                value: 5,
-                bind: {
-                    name: 'line thickness',
-                    input: 'range',
-                    min: 1,
-                    max: 10,
-                    step: 0.5,
-                },
+                value: c.sT,
             },
             {
                 name: 'domain',

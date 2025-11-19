@@ -1,5 +1,5 @@
 import { GLOBAL_CONFIG } from '../config';
-import { IChannelScales, IRow, IStackMode, IViewField, VegaGlobalConfig } from '../interfaces';
+import { IChannelScales, IRow, IStackMode, IViewField, VegaGlobalConfig, ISerpentineConfig } from '../interfaces';
 import { encodeFid } from '../vis/spec/encode';
 import { NULL_FIELD } from '../vis/spec/field';
 import { getSingleView, resolveScales } from '../vis/spec/view';
@@ -30,6 +30,7 @@ export function toVegaSpec({
     mediaTheme,
     vegaConfig,
     displayOffset,
+    serpentine,
 }: {
     rows: readonly IViewField[];
     columns: readonly IViewField[];
@@ -53,6 +54,7 @@ export function toVegaSpec({
     mediaTheme: 'dark' | 'light';
     vegaConfig: VegaGlobalConfig;
     displayOffset?: number;
+    serpentine?: ISerpentineConfig;
 }) {
     const guard = defaultAggregated ? (x?: IViewField) => x ?? NULL_FIELD : (x?: IViewField) => (x ? (x.aggName === 'expr' ? NULL_FIELD : x) : NULL_FIELD);
     const rows = rowsRaw.map(guard).filter((x) => x !== NULL_FIELD);
@@ -71,6 +73,7 @@ export function toVegaSpec({
             colorField,
             width: width || 300,
             height: height || 400,
+            config: serpentine,
         });
 
         // Return as a Vega spec (not Vega-Lite)

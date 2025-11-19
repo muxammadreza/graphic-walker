@@ -5,7 +5,7 @@ import * as op from 'rxjs/operators';
 import { expressionFunction, type ScenegraphEvent } from 'vega';
 import styled from 'styled-components';
 import { useVegaExportApi } from '../utils/vegaApiExport';
-import { IViewField, IRow, IStackMode, VegaGlobalConfig, IVegaChartRef, IChannelScales, IDarkMode, IConfigScaleSet } from '../interfaces';
+import { IViewField, IRow, IStackMode, VegaGlobalConfig, IVegaChartRef, IChannelScales, IDarkMode, IConfigScaleSet, ISerpentineConfig } from '../interfaces';
 import { getVegaTimeFormatRules } from './temporalFormat';
 import canvasSize from 'canvas-size';
 import { Errors, useReporter } from '../utils/reportError';
@@ -94,6 +94,7 @@ interface ReactVegaProps {
     scale?: IConfigScaleSet;
     onReportSpec?: (spec: string) => void;
     displayOffset?: number;
+    serpentine?: ISerpentineConfig;
 }
 
 const click$ = new Subject<ScenegraphEvent>();
@@ -151,6 +152,7 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
         scales: channelScaleRaw,
         scale,
         displayOffset,
+        serpentine,
     } = props;
     const [viewPlaceholders, setViewPlaceholders] = useState<React.MutableRefObject<HTMLDivElement>[]>([]);
     const mediaTheme = useContext(themeContext);
@@ -267,6 +269,7 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
                 theta,
                 vegaConfig,
                 displayOffset,
+                serpentine,
             }),
         [
             guardedCols,
@@ -290,6 +293,7 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
             displayOffset,
             vegaWidth,
             vegaHeight,
+            serpentine,
         ],
     );
 

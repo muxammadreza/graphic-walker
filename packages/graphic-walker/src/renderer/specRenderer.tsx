@@ -34,7 +34,7 @@ const SpecRenderer = forwardRef<IReactVegaHandler, SpecRendererProps>(function (
     ref,
 ) {
     // const { draggableFieldState, visualConfig } = vizStore;
-    const { geoms, defaultAggregated, coordSystem, timezoneDisplayOffset } = visualConfig;
+    const { geoms, defaultAggregated, coordSystem, timezoneDisplayOffset, serpentine } = visualConfig;
     const {
         interactiveScale,
 
@@ -209,6 +209,7 @@ const SpecRenderer = forwardRef<IReactVegaHandler, SpecRendererProps>(function (
                     scale={scale}
                     onReportSpec={onReportSpec}
                     displayOffset={timezoneDisplayOffset}
+                    serpentine={serpentine}
                 />
             )}
             {!isSpatial && layout.renderer === 'observable-plot' && (
