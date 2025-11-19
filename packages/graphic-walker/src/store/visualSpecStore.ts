@@ -56,7 +56,9 @@ import { getAllFields, getViewEncodingFields } from './storeStateLib';
 
 const encodingKeys = (Object.keys(emptyEncodings) as (keyof DraggableFieldState)[]).filter((dkey) => !GLOBAL_CONFIG.META_FIELD_KEYS.includes(dkey));
 
-const disposerRegister = (typeof FinalizationRegistry === 'undefined' ? null : new FinalizationRegistry(disposer => disposer())) as FinalizationRegistry<() => void> | null;
+const disposerRegister = (typeof FinalizationRegistry === 'undefined' ? null : new FinalizationRegistry((disposer) => disposer())) as FinalizationRegistry<
+    () => void
+> | null;
 export class VizSpecStore {
     instanceID: string = uniqueId();
     visList: VisSpecWithHistory[];
@@ -97,7 +99,7 @@ export class VizSpecStore {
             empty?: boolean;
             onMetaChange?: (fid: string, diffMeta: Partial<IMutField>) => void;
             defaultConfig?: IDefaultConfig;
-        }
+        },
     ) {
         this.meta = meta;
         this.visList = options?.empty ? [] : [fromFields(meta, 'Chart 1', options?.defaultConfig)];
@@ -119,9 +121,9 @@ export class VizSpecStore {
                             spec: this.currentVis,
                             instanceID: this.instanceID,
                         },
-                    })
+                    }),
                 );
-            }
+            },
         );
         disposerRegister?.register(this, disposer);
     }
@@ -227,7 +229,7 @@ export class VizSpecStore {
             this.sort,
             this.config.folds,
             this.config.limit,
-            this.config.timezoneDisplayOffset
+            this.config.timezoneDisplayOffset,
         );
     }
 
@@ -417,7 +419,7 @@ export class VizSpecStore {
                 ...this.visList[index].now,
                 name: this.visList[index].now.name + ' Copy',
                 visId: uniqueId(),
-            })
+            }),
         );
         this.createdVis += 1;
         this.visIndex = this.visList.length - 1;
@@ -486,7 +488,7 @@ export class VizSpecStore {
                     destinationKey,
                     destinationIndex,
                     uniqueId(),
-                    limit
+                    limit,
                 );
                 return;
             }
@@ -497,7 +499,7 @@ export class VizSpecStore {
                 destinationKey,
                 destinationIndex,
                 uniqueId(),
-                limit
+                limit,
             );
         }
     }
@@ -528,7 +530,7 @@ export class VizSpecStore {
                 f.expression &&
                 f.expression.op === binType &&
                 f.expression.params[0].value === state[stateKey][index].fid &&
-                f.expression.num === binNumber
+                f.expression.num === binNumber,
         );
         if (existedRelatedBinField) {
             return existedRelatedBinField.fid;
@@ -555,7 +557,7 @@ export class VizSpecStore {
         drillLevel: (typeof DATE_TIME_DRILL_LEVELS)[number],
         name: string,
         format: string,
-        offset: number | undefined
+        offset: number | undefined,
     ) {
         this.visList[this.visIndex] = performers.createDateDrillField(
             this.visList[this.visIndex],
@@ -565,7 +567,7 @@ export class VizSpecStore {
             uniqueId(),
             name,
             format,
-            offset ?? new Date().getTimezoneOffset()
+            offset ?? new Date().getTimezoneOffset(),
         );
     }
 
@@ -575,7 +577,7 @@ export class VizSpecStore {
         drillLevel: (typeof DATE_TIME_FEATURE_LEVELS)[number],
         name: string,
         format: string,
-        offset: number | undefined
+        offset: number | undefined,
     ) {
         this.visList[this.visIndex] = performers.createDateFeatureField(
             this.visList[this.visIndex],
@@ -585,7 +587,7 @@ export class VizSpecStore {
             uniqueId(),
             name,
             format,
-            offset ?? new Date().getTimezoneOffset()
+            offset ?? new Date().getTimezoneOffset(),
         );
     }
 
@@ -893,6 +895,8 @@ function geomAdapter(geom: string) {
             return 'circle';
         case 'rect':
             return 'rect';
+        case 'serpentine':
+            return 'serpentine';
         case 'tick':
         default:
             return 'tick';

@@ -24,7 +24,7 @@ type markChannel =
           type: markType;
       };
 
-type GWGeoms = 'auto' | 'bar' | 'line' | 'area' | 'trail' | 'point' | 'circle' | 'tick' | 'rect' | 'arc' | 'text' | 'boxplot' | 'table';
+type GWGeoms = 'auto' | 'bar' | 'line' | 'area' | 'trail' | 'point' | 'circle' | 'tick' | 'rect' | 'arc' | 'text' | 'boxplot' | 'table' | 'serpentine';
 
 type EncodingChannels = 'column' | 'row' | 'color' | 'opacity' | 'shape' | 'size' | 'details' | 'theta' | 'x' | 'y' | 'facet' | 'order' | 'radius';
 const encodingChannels = new Set(['column', 'row', 'color', 'opacity', 'shape', 'size', 'details', 'theta', 'x', 'y', 'facet', 'order', 'radius']);
@@ -177,6 +177,8 @@ function getGeom(mark: markChannel): GWGeoms {
                 return 'circle';
             case 'rect':
                 return 'rect';
+            case 'serpentine':
+                return 'serpentine';
             case 'tick':
             default:
                 return 'tick';
@@ -345,7 +347,7 @@ export function VegaliteMapper(vl: any, allFields: IViewField[], visId: string, 
     const stack = results.reduce((x: 'none' | 'stack' | 'normalize' | 'center', y) => y.stack ?? x, ['bar', 'area', 'arc'].includes(geom) ? 'stack' : 'none');
     const binFields = results.reduce(
         (x, y) => (y.binDimension && !x.has(y.binDimension.name) ? x.set(y.binDimension.name, y.binDimension) : x),
-        new Map<string, IViewField>()
+        new Map<string, IViewField>(),
     );
 
     const resultFields = results.flatMap((x) => {
@@ -397,13 +399,13 @@ export function VegaliteMapper(vl: any, allFields: IViewField[], visId: string, 
                 resultFields
                     .filter(is('facetX'))
                     .concat(resultFields.filter(is('column')))
-                    .map(get)
+                    .map(get),
             ),
             rows: deduperFields(
                 resultFields
                     .filter(is('facetY'))
                     .concat(resultFields.filter(is('row')))
-                    .map(get)
+                    .map(get),
             ),
             details: deduperFields(resultFields.filter(is('details')).map(get)),
             opacity: deduperFields(resultFields.filter(is('opacity')).map(get)),
@@ -421,7 +423,7 @@ export function VegaliteMapper(vl: any, allFields: IViewField[], visId: string, 
                         rule: f.rule,
                     };
                 }),
-                (f) => `${f.fid}_${f.rule?.type}`
+                (f) => `${f.fid}_${f.rule?.type}`,
             ),
         },
         layout: {

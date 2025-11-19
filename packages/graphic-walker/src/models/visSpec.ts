@@ -18,6 +18,8 @@ export const viewEncodingKeys = (geom: string): Exclude<keyof DraggableFieldStat
             return ['columns', 'rows', 'color', 'opacity', 'size', 'text'];
         case 'table':
             return ['columns', 'rows'];
+        case 'serpentine':
+            return ['columns', 'text', 'color', 'opacity', 'details'];
         default:
             return ['columns', 'rows', 'color', 'opacity', 'size', 'details', 'shape'];
     }

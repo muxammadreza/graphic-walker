@@ -74,7 +74,8 @@
             "table": "表格",
             "text": "文本",
             "poi": "兴趣点",
-            "choropleth": "区域图"
+            "choropleth": "区域图",
+            "serpentine": "蛇形时间轴"
         },
         "coord_system": {
             "__enum__": "坐标系统",

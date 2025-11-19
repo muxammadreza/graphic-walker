@@ -79,7 +79,8 @@
             "table": "Table",
             "text": "Text",
             "poi": "POI",
-            "choropleth": "Choropleth"
+            "choropleth": "Choropleth",
+            "serpentine": "Serpentine Timeline"
         },
         "coord_system": {
             "__enum__": "Coordinate System",

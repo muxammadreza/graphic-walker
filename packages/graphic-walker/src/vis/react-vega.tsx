@@ -105,7 +105,7 @@ const geomClick$ = selection$.pipe(
             return true;
         }
         return false;
-    })
+    }),
 );
 
 const BRUSH_SIGNAL_NAME = '__gw_brush__';
@@ -290,7 +290,7 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
             displayOffset,
             vegaWidth,
             vegaHeight,
-        ]
+        ],
     );
 
     // Render
@@ -302,8 +302,8 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
                     data: undefined,
                 })),
                 undefined,
-                4
-            )
+                4,
+            ),
         );
         vegaRefs.current = [];
         renderTaskRefs.current = [];
@@ -311,7 +311,7 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
             if (viewPlaceholders.length > 0 && viewPlaceholders[0].current) {
                 const task = embed(viewPlaceholders[0].current, specs[0], {
                     renderer: useSvg ? 'svg' : 'canvas',
-                    mode: 'vega-lite',
+                    mode: (specs[0] as any).usesVega ? 'vega' : 'vega-lite',
                     actions: showActions,
                     timeFormatLocale: getVegaTimeFormatRules(locale),
                     config: vegaConfig,
@@ -386,7 +386,7 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
             vegaRefs.current = new Array(rowRepeatFields.length * colRepeatFields.length);
             const combinedParamStore$ = new Subject<ParamStoreEntry>();
             const throttledParamStore$ = combinedParamStore$.pipe(
-                op.throttleTime((dataSource.length / 64) * rowRepeatFields.length * colRepeatFields.length, undefined, { leading: false, trailing: true })
+                op.throttleTime((dataSource.length / 64) * rowRepeatFields.length * colRepeatFields.length, undefined, { leading: false, trailing: true }),
             );
             const subscriptions: Subscription[] = [];
             const subscribe = (cb: (entry: ParamStoreEntry) => void) => {
@@ -405,7 +405,7 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
                         const id = index;
                         const task = embed(node, ans, {
                             renderer: useSvg ? 'svg' : 'canvas',
-                            mode: 'vega-lite',
+                            mode: (ans as any).usesVega ? 'vega' : 'vega-lite',
                             actions: showActions,
                             timeFormatLocale: getVegaTimeFormatRules(locale),
                             config: vegaConfig,
@@ -439,12 +439,12 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
                                         if (res.view.signal('child_width') !== undefined) {
                                             res.view.signal(
                                                 'child_width',
-                                                specs[0].width - modifier.width / Math.round((areaWidth || width) / colRepeatFields.length / specs[0].width)
+                                                specs[0].width - modifier.width / Math.round((areaWidth || width) / colRepeatFields.length / specs[0].width),
                                             );
                                             res.view.signal(
                                                 'child_height',
                                                 specs[0].height -
-                                                    modifier.height / Math.round((areaHeight || height) / rowRepeatFields.length / specs[0].height)
+                                                    modifier.height / Math.round((areaHeight || height) / rowRepeatFields.length / specs[0].height),
                                             );
                                         }
                                     } else {

@@ -85,28 +85,28 @@ const VisualSettings: React.FC<IVisualSettings> = ({ rendererHandler, csvHandler
         throttle(() => {
             rendererHandler?.current?.downloadPNG();
         }, 200),
-        [rendererHandler]
+        [rendererHandler],
     );
 
     const downloadSVG = useCallback(
         throttle(() => {
             rendererHandler?.current?.downloadSVG();
         }, 200),
-        [rendererHandler]
+        [rendererHandler],
     );
 
     const downloadBase64 = useCallback(
         throttle(() => {
             rendererHandler?.current?.getCanvasData().then((x) => navigator.clipboard.writeText(x.join(',')));
         }, 200),
-        [rendererHandler]
+        [rendererHandler],
     );
 
     const downloadCSV = useCallback(
         throttle(() => {
             csvHandler?.current?.download();
         }, 200),
-        []
+        [],
     );
 
     const items = useMemo<ToolbarItemProps[]>(() => {
@@ -321,6 +321,23 @@ const VisualSettings: React.FC<IVisualSettings> = ({ rendererHandler, csvHandler
                         ),
                         poi: MapPinIcon,
                         choropleth: RectangleGroupIcon,
+                        serpentine: (props: SVGProps<SVGSVGElement>) => (
+                            <svg
+                                stroke="currentColor"
+                                fill="none"
+                                strokeWidth="1.5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                aria-hidden
+                                {...props}
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3,12 Q6,6 9,12 T15,12 T21,12" />
+                                <circle cx="3" cy="12" r="1.5" fill="currentColor" />
+                                <circle cx="9" cy="12" r="1.5" fill="currentColor" />
+                                <circle cx="15" cy="12" r="1.5" fill="currentColor" />
+                                <circle cx="21" cy="12" r="1.5" fill="currentColor" />
+                            </svg>
+                        ),
                     }[g],
                 })),
                 value: markType,

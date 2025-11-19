@@ -3,6 +3,7 @@ import { IChannelScales, IRow, IStackMode, IViewField, VegaGlobalConfig } from '
 import { encodeFid } from '../vis/spec/encode';
 import { NULL_FIELD } from '../vis/spec/field';
 import { getSingleView, resolveScales } from '../vis/spec/view';
+import { toSerpentineSpec } from '../vis/spec/serpentine';
 
 const leastOne = (x: number) => Math.max(x, 1);
 
@@ -56,6 +57,27 @@ export function toVegaSpec({
     const guard = defaultAggregated ? (x?: IViewField) => x ?? NULL_FIELD : (x?: IViewField) => (x ? (x.aggName === 'expr' ? NULL_FIELD : x) : NULL_FIELD);
     const rows = rowsRaw.map(guard).filter((x) => x !== NULL_FIELD);
     const columns = columnsRaw.map(guard).filter((x) => x !== NULL_FIELD);
+
+    // Handle Serpentine Timeline as a special case - it uses raw Vega, not Vega-Lite
+    if (geomType === 'serpentine') {
+        const dateField = columns.length > 0 ? columns[0] : null;
+        const labelField = guard(text);
+        const colorField = guard(color);
+
+        const serpentineSpec = toSerpentineSpec({
+            dataSource,
+            dateField,
+            labelField,
+            colorField,
+            width: width || 300,
+            height: height || 400,
+        });
+
+        // Return as a Vega spec (not Vega-Lite)
+        // The renderer will need to handle this differently
+        return [{ ...serpentineSpec, usesVega: true }];
+    }
+
     const yField = guard(rows.length > 0 ? rows[rows.length - 1] : NULL_FIELD);
     const xField = guard(columns.length > 0 ? columns[columns.length - 1] : NULL_FIELD);
     const rowDims = rows.filter((f) => f.analyticType === 'dimension');

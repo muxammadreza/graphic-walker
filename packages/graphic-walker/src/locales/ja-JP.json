@@ -74,7 +74,8 @@
             "table": "テーブル",
             "text": "文字",
             "poi": "POI",
-            "choropleth": "コロプレス"
+            "choropleth": "コロプレス",
+            "serpentine": "サーペンタイムライン"
         },
         "stack_mode": {
             "__enum__": "スタックモード",

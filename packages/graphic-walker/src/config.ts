@@ -1,7 +1,7 @@
 import { DraggableFieldState, IAggregator, ICoordMode, IEmbedMenuItem, IStackMode, IVisualConfig } from './interfaces';
 
 const GEOM_TYPES: Record<ICoordMode, string[]> = {
-    generic: ['auto', 'bar', 'line', 'area', 'trail', 'point', 'circle', 'tick', 'rect', 'arc', 'text', 'boxplot', 'table'],
+    generic: ['auto', 'bar', 'line', 'area', 'trail', 'point', 'circle', 'tick', 'rect', 'arc', 'text', 'boxplot', 'table', 'serpentine'],
     geographic: ['poi', 'choropleth'],
 };
 
