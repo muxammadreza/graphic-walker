@@ -1,4 +1,15 @@
-import { IAggregator, IExplainProps, IPredicate, IField, IRow, IViewField, IFilterField, IComputationFunction, IViewWorkflowStep, IDataQueryWorkflowStep } from '../../interfaces';
+import {
+    IAggregator,
+    IExplainProps,
+    IPredicate,
+    IField,
+    IRow,
+    IViewField,
+    IFilterField,
+    IComputationFunction,
+    IViewWorkflowStep,
+    IDataQueryWorkflowStep,
+} from '../../interfaces';
 import { filterByPredicates, getMeaAggKey } from '../../utils';
 import { compareDistribution, compareDistributionKL, compareDistributionJS, normalizeWithParent } from '../../utils/normalization';
 import { aggregate } from '../op/aggregate';
@@ -44,12 +55,14 @@ export async function explainBySelection(props: {
                             op: 'bin',
                             as: extendDimFid,
                             num: QUANT_BIN_NUM,
-                            params: [{
-                                type: 'field',
-                                value: extendDim.fid,
-                            }]
-                        }
-                    }
+                            params: [
+                                {
+                                    type: 'field',
+                                    value: extendDim.fid,
+                                },
+                            ],
+                        },
+                    },
                 ],
             });
         }
@@ -60,13 +73,22 @@ export async function explainBySelection(props: {
             const viewWorkflow = toWorkflow(viewFilters, allFields, [...viewDimensions, extendDim], [mea], true, 'none', [], undefined, timezoneDisplayOffset);
             const fullViewWorkflow = extraPreWorkflow ? [...extraPreWorkflow, ...viewWorkflow] : viewWorkflow;
             const viewData = await dataQuery(computationFunction, fullViewWorkflow);
+            console.log('VERSION CHECK: ExplainBySelection 1.0');
             const subData = filterByPredicates(viewData, predicates);
+            console.log('ExplainData Debug:', {
+                dim: extendDim.fid,
+                mea: mea.fid,
+                overallDataLen: overallData.length,
+                viewDataLen: viewData.length,
+                subDataLen: subData.length,
+                predicates,
+            });
             let outlierNormalization = normalizeWithParent(subData, overallData, [getMeaAggKey(mea.fid, mea.aggName ?? 'sum')], false);
             let outlierScore = compareDistributionJS(
                 outlierNormalization.normalizedData,
                 outlierNormalization.normalizedParentData,
                 [extendDim.fid],
-                getMeaAggKey(mea.fid, mea.aggName ?? 'sum')
+                getMeaAggKey(mea.fid, mea.aggName ?? 'sum'),
             );
             outlierList.push({
                 measureField: mea,

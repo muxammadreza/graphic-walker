@@ -72,7 +72,7 @@ async function bufferToBase64(buffer: Uint8Array | ArrayBuffer): Promise<string>
     return await new Promise((r) => {
         const reader = new FileReader();
         reader.onload = () => r((reader.result as string).substring(37));
-        reader.readAsDataURL(new Blob([buffer]));
+        reader.readAsDataURL(new Blob([buffer as any]));
     });
 }
 /**
@@ -81,7 +81,7 @@ async function bufferToBase64(buffer: Uint8Array | ArrayBuffer): Promise<string>
  * @returns Promise of the compressed data in base64-string.
  */
 export async function compressBitMap(arr: Uint8Array) {
-    const stream = new Response(arr).body!.pipeThrough(new CompressionStream('deflate-raw'));
+    const stream = new Response(arr as any).body!.pipeThrough(new CompressionStream('deflate-raw'));
     const result = await new Response(stream).arrayBuffer();
     return bufferToBase64(result);
 }
@@ -94,7 +94,7 @@ export async function compressBitMap(arr: Uint8Array) {
 export async function decompressBitMap(base64: string) {
     const stream = await fetch('data:application/octet-stream;base64,' + base64).then((res) => res.body!.pipeThrough(new DecompressionStream('deflate-raw')));
     const result = await new Response(stream).arrayBuffer();
-    return new Uint8Array(result);
+    return new Uint8Array(result as any);
 }
 
 export function createBitMapForMap(dimensions: IPaintDimension[]) {

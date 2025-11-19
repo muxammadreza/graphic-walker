@@ -81,18 +81,48 @@ const ExplainData: React.FC<{
             computationFunction,
             timezoneDisplayOffset,
         });
+        console.log('explainInfoList', explainInfoList);
         setExplainDataInfoList(explainInfoList);
     };
 
     useEffect(() => {
+        console.log('VERSION CHECK: ExplainData Index 1.0');
         if (!showInsightBoard || Object.keys(selectedMarkObject).length === 0) return;
         const predicates: IPredicate[] = viewDimensions.map((field) => {
+            // Fuzzy match to find the key
+            let value = selectedMarkObject[field.fid] ?? selectedMarkObject[field.name] ?? (field.basename ? selectedMarkObject[field.basename] : undefined);
+
+            if (value === undefined) {
+                const keys = Object.keys(selectedMarkObject);
+                const matchKey = keys.find(
+                    (k) =>
+                        k === field.fid ||
+                        k === field.name ||
+                        k === field.basename ||
+                        k.replace(/\\/g, '') === field.fid || // Handle escaped backslashes
+                        k.endsWith(`.${field.name}`) ||
+                        k.endsWith(`.${field.basename}`),
+                );
+                if (matchKey) {
+                    value = selectedMarkObject[matchKey];
+                    console.log(`ExplainData: Fuzzy matched key '${matchKey}' for field '${field.fid}'`);
+                }
+            }
+
+            console.warn('ExplainData Key Debug:', {
+                fid: field.fid,
+                value,
+                keysJSON: JSON.stringify(Object.keys(selectedMarkObject)),
+                fullObjectJSON: JSON.stringify(selectedMarkObject),
+            });
+
             return {
                 key: field.fid,
                 type: 'discrete',
-                range: new Set([selectedMarkObject[field.fid]]),
+                range: new Set([value]),
             } as IPredicate;
         });
+        console.warn('ExplainData index.tsx Debug:', { selectedMarkObject, predicates, viewDimensions });
         explain(predicates);
     }, [viewMeasures, viewDimensions, showInsightBoard, selectedMarkObject]);
 

@@ -5,10 +5,11 @@ import { calcIndexesByDimensions, calcPaintMapV2, compressBitMap, createBitMapFo
 import { fieldStat } from '../../computation';
 import { useRenderer } from '../../renderer/hooks';
 import { IDarkMode, IPaintDimension, IPaintMapFacet, ISemanticType, IThemeKey, IViewField, VegaGlobalConfig } from '../../interfaces';
-import embed from 'vega-embed';
+import embed, { vega } from 'vega-embed';
 import { PAINT_FIELD_ID } from '../../constants';
 import { Scene, SceneGroup, SceneItem, ScenegraphEvent } from 'vega-typings';
-import { renderModule, sceneVisit, CanvasHandler, Item } from 'vega';
+import { CanvasHandler, Item, sceneVisit } from 'vega';
+import { Renderer } from 'vega-scenegraph';
 import throttle from '../../utils/throttle';
 import { useTranslation } from 'react-i18next';
 import { ClickInput, ColorEditor, CursorDef, PixelContainer } from './components';
@@ -33,7 +34,66 @@ CanvasHandler.prototype.context = function () {
     return this._canvas.getContext('2d') || this._canvas._textCanvas.getContext('2d');
 };
 
-renderModule('webgl', { handler: CanvasHandler, renderer: WebGLRenderer });
+// Fix for "Class constructor Renderer2 cannot be invoked without 'new'"
+// We need to create an ES6 class that extends the Vega Renderer (which is an ES6 class)
+// and mixes in the functionality of WebGLRenderer (which is an ES5 "class").
+
+// 1. Get the ES5 WebGLRenderer constructor
+const ES5WebGLRenderer = WebGLRenderer as any;
+
+// 2. Define our ES6 wrapper class extending the Vega Renderer
+class WebGLRendererWrapper extends (Renderer as any) {
+    _redraw: boolean;
+    _angleX: number;
+    _angleY: number;
+    _angleZ: number;
+    _translateX: number;
+    _translateY: number;
+    _translateZ: number;
+    _zFactor: number;
+    _depthTest: boolean;
+    _randomZ: boolean;
+    _canvas: any;
+
+    constructor(loader: any) {
+        console.log('WebGLRendererWrapper constructor called');
+        super(loader); // Call ES6 super constructor
+        // Initialize properties that WebGLRenderer would have set
+        this._redraw = false;
+        this._angleX = 0;
+        this._angleY = 0;
+        this._angleZ = 0;
+        this._translateX = 0;
+        this._translateY = 0;
+        this._translateZ = 0;
+        this._zFactor = 0;
+        this._depthTest = false;
+        this._randomZ = false;
+    }
+}
+
+// 3. Copy prototype methods from ES5 WebGLRenderer to our ES6 wrapper
+// We skip 'constructor' and any properties that might already exist on Renderer if needed
+Object.getOwnPropertyNames(ES5WebGLRenderer.prototype).forEach((name) => {
+    if (name !== 'constructor') {
+        Object.defineProperty(WebGLRendererWrapper.prototype, name, Object.getOwnPropertyDescriptor(ES5WebGLRenderer.prototype, name)!);
+    }
+});
+
+// Wrap initialize to add logging
+const originalInitialize = WebGLRendererWrapper.prototype.initialize;
+WebGLRendererWrapper.prototype.initialize = function (el: any, width: any, height: any, origin: any) {
+    console.log('VERSION CHECK: Painter 1.0');
+    console.log('WebGLRendererWrapper initialize called', { el, width, height, origin });
+    const result = originalInitialize.call(this, el, width, height, origin);
+    console.log('WebGLRendererWrapper initialize result', { canvas: this._canvas });
+    return result;
+};
+
+// vega.renderModule('webgl', { handler: CanvasHandler, renderer: WebGLRendererWrapper as any });
+// vega.renderModule('webgl', { handler: CanvasHandler, renderer: WebGLRendererWrapper as any });
+console.log('Painter: Registering WebGLRendererWrapper via vega.renderModule');
+vega.renderModule('webgl', { handler: CanvasHandler, renderer: WebGLRendererWrapper as any });
 
 const MAGIC_PADDING = 5;
 const PIXEL_INDEX = '_gw_pixel_index';
@@ -145,7 +205,7 @@ const getAggDimensionFields = (fields: {
         [fields.x, fields.y, fields.color, fields.size, fields.opacity, fields.shape]
             .filter((x): x is IViewField => !!x)
             .filter((x) => x!.analyticType === 'dimension'),
-        (x) => x.fid
+        (x) => x.fid,
     );
 };
 
@@ -154,7 +214,7 @@ const produceChannel = (
     domain: IPaintDimension,
     options?: {
         reverseNominalDomain?: boolean;
-    }
+    },
 ) => {
     if (domain.domain.value.every((x) => x instanceof Array)) {
         return {
@@ -185,7 +245,7 @@ const produceAggChannel = (
     options?: {
         reverseNominalDomain?: boolean;
         aggregate?: boolean;
-    }
+    },
 ) => {
     if (domain?.domain.value.every((x) => x instanceof Array)) {
         return {
@@ -241,7 +301,7 @@ const AggPainterContent = (props: {
     const computation = useCompututaion();
     const fields = useMemo(
         () => [props.x, props.y, props.color, props.size, props.opacity, props.shape].filter((x) => x).map((x) => x!.field),
-        [props.x, props.y, props.color, props.size, props.opacity, props.shape]
+        [props.x, props.y, props.color, props.size, props.opacity, props.shape],
     );
     const [viewDimensions, viewMeasures] = useMemo(() => {
         const totalFields = deduper(
@@ -252,17 +312,17 @@ const AggPainterContent = (props: {
                         name: d.fid,
                         semanticType: d.domain.type,
                         analyticType: d.domain.type === 'nominal' ? 'dimension' : 'measure',
-                    }))
-                )
+                    })),
+                ),
             ),
-            (x) => x.fid
+            (x) => x.fid,
         );
         return [totalFields.filter((x) => x.analyticType === 'dimension'), fields.filter((x) => x.analyticType === 'measure')];
     }, [fields, props.facets]);
     const paintDimensions = useMemo(() => {
         return deduper(
             [props.x, props.y, props.color, props.size, props.opacity, props.shape].filter((x) => x).filter((x) => x!.domain),
-            (x) => x!.field.fid
+            (x) => x!.field.fid,
         ).map((x) => x!.domain!);
     }, []);
     const brushSizeRef = useRef(GLOBAL_CONFIG.PAINT_DEFAULT_BRUSH_SIZE);
@@ -290,7 +350,7 @@ const AggPainterContent = (props: {
             const pid = props.paintMapRef.current![indexes[i]];
             return {
                 ...x,
-                [PAINT_FIELD_ID]: pid === 0 ? facetResult[i] ?? props.dict[1].name : props.dict[pid]?.name,
+                [PAINT_FIELD_ID]: pid === 0 ? (facetResult[i] ?? props.dict[1].name) : props.dict[pid]?.name,
                 [PIXEL_INDEX]: indexes[i],
             };
         });
@@ -343,7 +403,8 @@ const AggPainterContent = (props: {
                     c.field = getMeaAggKey(targetField.fid, targetField.aggName);
                 }
             });
-
+            console.log('Painter Spec:', spec);
+            console.log('Painter Spec JSON:', JSON.stringify(spec));
             embed(containerRef.current, spec, {
                 renderer: 'webgl' as any,
                 config: props.vegaConfig,
@@ -368,7 +429,7 @@ const AggPainterContent = (props: {
                             itemsMap.get(id)?.push(item);
                             item.bounds && tree.insert({ minX: item.bounds.x1, minY: item.bounds.y1, maxX: item.bounds.x2, maxY: item.bounds.y2, id });
                         }
-                    })
+                    }),
                 );
                 //@ts-ignore
                 const rerender = throttle(() => res.view._renderer._render(scene.root), 15, { trailing: true });
@@ -382,7 +443,7 @@ const AggPainterContent = (props: {
                                 item['fill'] = color;
                                 item.datum![PAINT_FIELD_ID] = name;
                             }
-                        })
+                        }),
                     );
                     rerender();
                 };
@@ -424,7 +485,7 @@ const AggPainterContent = (props: {
                         const rect = containerRef.current!.getBoundingClientRect();
                         paint(
                             e.changedTouches[0].pageX - rect.left - origin[0] - MAGIC_PADDING,
-                            e.changedTouches[0].pageY - rect.top - origin[1] - MAGIC_PADDING
+                            e.changedTouches[0].pageY - rect.top - origin[1] - MAGIC_PADDING,
                         );
                     }
                 };
@@ -590,12 +651,12 @@ const PainterContent = (props: {
                     },
                 ].concat(
                     props.facets.flatMap((x) =>
-                        x.dimensions.map((d) => ({ fid: d.fid, name: d.fid, semanticType: d.domain.type, analyticType: 'measure' as const }))
-                    )
+                        x.dimensions.map((d) => ({ fid: d.fid, name: d.fid, semanticType: d.domain.type, analyticType: 'measure' as const })),
+                    ),
                 ),
-                (x) => x.fid
+                (x) => x.fid,
             ),
-        [props.x, props.y]
+        [props.x, props.y],
     );
     const brushSizeRef = useRef(GLOBAL_CONFIG.PAINT_DEFAULT_BRUSH_SIZE);
     const [brushSize, setBrushSize] = useState(GLOBAL_CONFIG.PAINT_DEFAULT_BRUSH_SIZE);
@@ -683,7 +744,7 @@ const PainterContent = (props: {
                             }
                             itemsMap.get(id)?.push(item);
                         }
-                    })
+                    }),
                 );
                 //@ts-ignore
                 const rerender = throttle(() => res.view._renderer._render(scene.root), 15, { trailing: true });
@@ -698,7 +759,7 @@ const PainterContent = (props: {
                                 item['stroke'] && item['stroke'] !== 'transparent' && (item['stroke'] = color);
                                 item.datum![PAINT_FIELD_ID] = name;
                             }
-                        })
+                        }),
                     );
                     rerender();
                 };
@@ -717,7 +778,7 @@ const PainterContent = (props: {
                         const pts = getCircleIndexes(
                             [Math.floor(x / getFactor(props.domainX)), props.domainY.domain.width - 1 - Math.floor(y / getFactor(props.domainY))],
                             brushSizeRef.current,
-                            [props.domainY, props.domainX]
+                            [props.domainY, props.domainX],
                         );
                         let i = 0;
                         pts.forEach((x) => {
@@ -745,7 +806,7 @@ const PainterContent = (props: {
                         const rect = containerRef.current!.getBoundingClientRect();
                         paint(
                             e.changedTouches[0].pageX - rect.left - origin[0] - MAGIC_PADDING,
-                            e.changedTouches[0].pageY - rect.top - origin[1] - MAGIC_PADDING
+                            e.changedTouches[0].pageY - rect.top - origin[1] - MAGIC_PADDING,
                         );
                     }
                 };
@@ -1118,10 +1179,10 @@ const Painter = ({ themeConfig, themeKey }: { themeConfig?: GWGlobalConfig; them
             domainX && domainY
                 ? [domainY, domainX]
                 : aggInfo
-                ? [aggInfo.x, aggInfo.y, aggInfo.color, aggInfo.size, aggInfo.opacity, aggInfo.shape]
-                      .map((x) => x?.domain)
-                      .filter((x): x is IPaintDimension => !!x)
-                : null;
+                  ? [aggInfo.x, aggInfo.y, aggInfo.color, aggInfo.size, aggInfo.opacity, aggInfo.shape]
+                        .map((x) => x?.domain)
+                        .filter((x): x is IPaintDimension => !!x)
+                  : null;
         if (dimensions && paintMapRef.current) {
             const newFacets = [
                 ...facets,
@@ -1141,7 +1202,7 @@ const Painter = ({ themeConfig, themeKey }: { themeConfig?: GWGlobalConfig; them
                     facets: newFacets,
                     usedColor: Array.from(new Set(newFacets.flatMap((f) => f.usedColor ?? defaultUsedColor))),
                 },
-                t('constant.paint_key')
+                t('constant.paint_key'),
             );
         }
         vizStore.setShowPainter(false);
