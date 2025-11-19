@@ -1219,7 +1219,7 @@ const Painter = ({ themeConfig, themeKey }: { themeConfig?: GWGlobalConfig; them
         const presetConfig = themeConfig ?? builtInThemes[themeKey ?? 'vega'];
         const config: VegaGlobalConfig = {
             ...presetConfig?.[mediaTheme],
-            background: parseColorToHex(uiTheme[mediaTheme].background),
+            background: parseColorToHex(uiTheme[mediaTheme].background) || undefined,
         };
         return config;
     }, [uiTheme, themeConfig, themeKey, mediaTheme]);

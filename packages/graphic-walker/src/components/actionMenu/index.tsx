@@ -10,7 +10,7 @@ import React, {
     useCallback,
     type ComponentPropsWithoutRef,
 } from 'react';
-import { Menu, Transition } from '@headlessui/react';
+import { Menu, MenuButton, MenuItems, Transition, TransitionChild } from '@headlessui/react';
 import { type ReactTag, type ElementType, useMenuButton } from './a11y';
 import ActionMenuItemList, { type IActionMenuItem } from './list';
 import { blockContext } from '../../fields/fieldsContext';
@@ -66,7 +66,7 @@ const ActionMenu: React.FC<IActionMenuProps & Omit<HTMLAttributes<HTMLDivElement
                             _items: menu,
                         }}
                     >
-                        <Menu.Button ref={buttonRef} className="sr-only" aria-hidden />
+                        <MenuButton ref={buttonRef} className="sr-only" aria-hidden />
                         <div
                             onContextMenu={(e) => {
                                 if (isDisabled) return;
@@ -84,25 +84,27 @@ const ActionMenu: React.FC<IActionMenuProps & Omit<HTMLAttributes<HTMLDivElement
                             {props.children}
                         </div>
                         {open && <div className="fixed inset-0 z-50 bg-transparent" aria-hidden="true" />}
-                        {!isDisabled && <Transition
-                            as={Fragment}
-                            enter="transition ease-out duration-100"
-                            enterFrom="transform opacity-0 scale-95"
-                            enterTo="transform opacity-100 scale-100"
-                            leave="transition ease-in duration-75"
-                            leaveFrom="transform opacity-100 scale-100"
-                            leaveTo="transform opacity-0 scale-95"
-                        >
-                            <Menu.Items
-                                className="fixed rounded-md z-50 mt-0.5 min-w-[8rem] max-w-[16rem] origin-top-left bg-popover text-popover-foreground shadow-lg border focus:outline-none"
-                                style={{
-                                    left: coord[0],
-                                    top: coord[1],
-                                }}
+                        {!isDisabled && (
+                            <Transition
+                                as={Fragment}
+                                enter="transition ease-out duration-100"
+                                enterFrom="transform opacity-0 scale-95"
+                                enterTo="transform opacity-100 scale-100"
+                                leave="transition ease-in duration-75"
+                                leaveFrom="transform opacity-100 scale-100"
+                                leaveTo="transform opacity-0 scale-95"
                             >
-                                <ActionMenuItemList title={title} items={menu} onDismiss={close} />
-                            </Menu.Items>
-                        </Transition>}
+                                <MenuItems
+                                    className="fixed rounded-md z-50 mt-0.5 min-w-[8rem] max-w-[16rem] origin-top-left bg-popover text-popover-foreground shadow-lg border focus:outline-none"
+                                    style={{
+                                        left: coord[0],
+                                        top: coord[1],
+                                    }}
+                                >
+                                    <ActionMenuItemList title={title} items={menu} onDismiss={close} />
+                                </MenuItems>
+                            </Transition>
+                        )}
                     </Context.Provider>
                 );
             }}
@@ -126,7 +128,7 @@ type IActionMenuButtonProps<T extends ReactTag> = (
 };
 
 const ActionMenuButton = function ActionMenuButton<T extends ReactTag>(
-    props: IActionMenuButtonProps<T> & Omit<ComponentPropsWithoutRef<T>, keyof IActionMenuProps>
+    props: IActionMenuButtonProps<T> & Omit<ComponentPropsWithoutRef<T>, keyof IActionMenuProps>,
 ): ReactElement {
     const { as: _as = 'button', onPress, children, ...attrs } = props;
     const Component = _as as T;

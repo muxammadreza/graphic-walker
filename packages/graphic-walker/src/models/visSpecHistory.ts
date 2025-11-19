@@ -29,7 +29,7 @@ import { GLOBAL_CONFIG } from '../config';
 import { COUNT_FIELD_ID, DATE_TIME_DRILL_LEVELS, DATE_TIME_FEATURE_LEVELS, MEA_KEY_ID, MEA_VAL_ID, PAINT_FIELD_ID } from '../constants';
 import { algebraLint } from '../lib/gog';
 import { getSQLItemAnalyticType, parseSQLExpr, replaceFid } from '../lib/sql';
-import produce from 'immer';
+import { produce } from 'immer';
 
 type normalKeys = keyof Omit<DraggableFieldState, 'filters'>;
 
@@ -108,7 +108,7 @@ const actions: {
                 if (i === from) return a[to];
                 if (i === to) return a[from];
                 return x;
-            })
+            }),
         ),
     [Methods.moveField]: (data, from, findex, to, tindex, limit) => {
         const oriField = data.encodings[from][findex];
@@ -116,8 +116,8 @@ const actions: {
             to === 'dimensions'
                 ? mutPath(oriField, 'analyticType', () => 'dimension')
                 : to === 'measures'
-                ? mutPath(oriField, 'analyticType', () => 'measure')
-                : oriField;
+                  ? mutPath(oriField, 'analyticType', () => 'measure')
+                  : oriField;
         return mutPath(data, 'encodings', (e) => ({
             ...e,
             [from]: remove(data.encodings[from], findex),
@@ -168,8 +168,8 @@ const actions: {
                     ...originField,
                     rule: null,
                 },
-                index
-            )
+                index,
+            ),
         );
     },
     [Methods.modFilter]: (data, index, from, findex) =>
@@ -303,7 +303,7 @@ const actions: {
     },
     [Methods.setFilterAggregator]: (data, index, aggName) => {
         return mutPath(data, `encodings.filters`, (f) =>
-            replace(f, index, (x) => ({ ...x, aggName: aggName || 'sum', enableAgg: aggName ? true : false, rule: null }))
+            replace(f, index, (x) => ({ ...x, aggName: aggName || 'sum', enableAgg: aggName ? true : false, rule: null })),
         );
     },
     [Methods.addFoldField]: (originalData, from, findex, to, tindex, newVarKey, limit) => {
@@ -314,7 +314,7 @@ const actions: {
             data = actions[Methods.setConfig](
                 data,
                 'folds',
-                validFoldBy.filter((_, i) => i === 0).map((x) => x.fid)
+                validFoldBy.filter((_, i) => i === 0).map((x) => x.fid),
             );
         }
         if (originalField.fid === MEA_VAL_ID) {
@@ -336,7 +336,7 @@ const actions: {
                 data,
                 'encodings',
                 (encodings) =>
-                    Object.fromEntries(Object.entries(encodings).map(([c, f]) => [c, f.filter((x) => x.fid !== PAINT_FIELD_ID)])) as DraggableFieldState
+                    Object.fromEntries(Object.entries(encodings).map(([c, f]) => [c, f.filter((x) => x.fid !== PAINT_FIELD_ID)])) as DraggableFieldState,
             );
         }
         const expression: IExpression =
@@ -398,7 +398,7 @@ const actions: {
             const result = mutPath(
                 mutPath(enc, 'dimensions', (f) => insert(f, field, f.length)),
                 'color',
-                () => [{ ...field }]
+                () => [{ ...field }],
             );
             if (hasErased) {
                 return mutPath(result, 'filters', (f) => f.concat(erasedFilter));
@@ -422,7 +422,7 @@ const actions: {
                     as: fid,
                     params: [{ type: 'sql', value: sql }],
                 },
-            })
+            }),
         );
     },
     [Methods.removeAllField]: (data, fid) => {
@@ -437,8 +437,8 @@ const actions: {
                             return [fname, fields];
                         }
                         return [fname, newFields];
-                    })
-                ) as typeof e
+                    }),
+                ) as typeof e,
         );
     },
     [Methods.editAllField]: (data, fid, newData) => {
@@ -462,7 +462,7 @@ const actions: {
                                 }
                             }
                         }
-                    })
+                    }),
                 );
             });
         }
@@ -477,8 +477,8 @@ const actions: {
                             return [fname, fields.map((x) => (x.fid === fid ? { ...x, ...newData } : x))];
                         }
                         return [fname, fields];
-                    })
-                ) as typeof e
+                    }),
+                ) as typeof e,
         );
     },
     [Methods.replaceWithNLPQuery]: (data, _query, response) => {
@@ -549,7 +549,7 @@ export const at: (data: VisSpecWithHistory, cursor: number) => IChart = atWith(r
 export { freeze };
 
 export const performers = Object.fromEntries(
-    (Object.keys(Methods) as (keyof typeof Methods)[]).map((k) => [k, (data: any, ...args: any[]) => perform(data, [Methods[k], ...args] as any)])
+    (Object.keys(Methods) as (keyof typeof Methods)[]).map((k) => [k, (data: any, ...args: any[]) => perform(data, [Methods[k], ...args] as any)]),
 ) as unknown as {
     [K in keyof typeof Methods]: (data: VisSpecWithHistory, ...args: PropsMap[(typeof Methods)[K]]) => VisSpecWithHistory;
 };
@@ -580,7 +580,7 @@ export function newChart(fields: IMutField[], name: string, visId?: string, defa
                     semanticType: f.semanticType,
                     analyticType: f.analyticType,
                     offset: f.offset,
-                })
+                }),
             )
             .concat(extraDimensions),
         measures: fields
@@ -594,7 +594,7 @@ export function newChart(fields: IMutField[], name: string, visId?: string, defa
                     semanticType: f.semanticType,
                     aggName: 'sum',
                     offset: f.offset,
-                })
+                }),
             )
             .concat(extraMeasures),
     }));

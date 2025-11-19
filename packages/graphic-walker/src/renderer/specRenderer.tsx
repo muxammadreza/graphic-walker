@@ -31,7 +31,7 @@ interface SpecRendererProps {
  */
 const SpecRenderer = forwardRef<IReactVegaHandler, SpecRendererProps>(function (
     { name, layout, data, draggableFieldState, visualConfig, onGeomClick, onChartResize, locale, onReportSpec, vizThemeConfig, scales, disableCollapse },
-    ref
+    ref,
 ) {
     // const { draggableFieldState, visualConfig } = vizStore;
     const { geoms, defaultAggregated, coordSystem, timezoneDisplayOffset } = visualConfig;
@@ -78,7 +78,7 @@ const SpecRenderer = forwardRef<IReactVegaHandler, SpecRendererProps>(function (
     const vegaConfig = useMemo<VegaGlobalConfig>(() => {
         const config: VegaGlobalConfig = {
             ...themeConfig,
-            background: parseColorToHex(uiTheme[mediaTheme].background),
+            background: parseColorToHex(uiTheme[mediaTheme].background) || undefined,
             customFormatTypes: true,
         };
         if (format.normalizedNumberFormat && format.normalizedNumberFormat.length > 0) {
@@ -153,16 +153,16 @@ const SpecRenderer = forwardRef<IReactVegaHandler, SpecRendererProps>(function (
                           height: size.height + 'px',
                       }
                     : size.mode === 'full'
-                    ? {
-                          width: '100%',
-                          height: '100%',
-                      }
-                    : isSpatial
-                    ? {
-                          width: LEAFLET_DEFAULT_WIDTH + 'px',
-                          height: LEAFLET_DEFAULT_HEIGHT + 'px',
-                      }
-                    : { width: 'auto', height: 'auto' }
+                      ? {
+                            width: '100%',
+                            height: '100%',
+                        }
+                      : isSpatial
+                        ? {
+                              width: LEAFLET_DEFAULT_WIDTH + 'px',
+                              height: LEAFLET_DEFAULT_HEIGHT + 'px',
+                          }
+                        : { width: 'auto', height: 'auto' }
             }
         >
             {isSpatial && (

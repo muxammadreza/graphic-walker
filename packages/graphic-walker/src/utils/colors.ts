@@ -39,7 +39,8 @@ export function parseColorToHSL(color: string) {
 }
 
 export function parseColorToHex(color: string) {
-    return colorString.to.hex(hsl.rgb(toHSL(color)));
+    const rgbValues = hsl.rgb(toHSL(color));
+    return colorString.to.hex(...rgbValues);
 }
 
 function ColorSetToCss(set: Required<IColorSet>) {

@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, useRef, useState, useContext, useMemo } from 'react';
-import { Listbox, Transition } from '@headlessui/react';
+import { Listbox, ListboxOptions, ListboxOption, Transition } from '@headlessui/react';
 import { CheckIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { Float } from '@headlessui-float/react';
 import { blockContext } from '../../fields/fieldsContext';
@@ -62,9 +62,9 @@ const SelectContext: React.FC<ISelectContextProps> = (props) => {
             </div>
             <PopoverContent className="mt-1 max-h-60 w-fit overflow-auto rounded-md py-1 px-0 text-base sm:text-sm">
                 <Listbox multiple value={selected} onChange={setSelected}>
-                    <Listbox.Options static>
+                    <ListboxOptions static>
                         {options.map((option) => (
-                            <Listbox.Option
+                            <ListboxOption
                                 key={option.key}
                                 className={`relative cursor-default rounded-md mx-1 select-none py-2 pl-10 pr-4 text-popover-foreground hover:bg-accent hover:text-accent-foreground`}
                                 value={option}
@@ -79,9 +79,9 @@ const SelectContext: React.FC<ISelectContextProps> = (props) => {
                                         )}
                                     </>
                                 )}
-                            </Listbox.Option>
+                            </ListboxOption>
                         ))}
-                    </Listbox.Options>
+                    </ListboxOptions>
                 </Listbox>
             </PopoverContent>
         </Popover>

@@ -4,7 +4,7 @@ import { DemoDataAssets, PUBLIC_DATA_LIST, IPublicData } from '../config';
 import { observer } from 'mobx-react-lite';
 import { useTranslation } from 'react-i18next';
 import { CommonStore } from '../../store/commonStore';
-import { RadioGroup } from '@headlessui/react';
+import { RadioGroup, Radio, Label } from '@headlessui/react';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { classNames } from '../../utils';
 import { Button } from '@/components/ui/button';
@@ -42,20 +42,20 @@ const PublicData: React.FC<IPublicDataProps> = ({ commonStore }) => {
         <div>
             <RadioGroup className="h-48 overflow-auto mb-1" by="key" onChange={handleDataKeyChange}>
                 {PUBLIC_DATA_LIST.map((data) => (
-                    <RadioGroup.Option
+                    <Radio
                         key={data.key}
                         value={data}
-                        className={({ active, checked }) =>
+                        className={({ focus, checked }) =>
                             classNames(
                                 'flex focus:outline-none border ring-ring rounded items-center justify-between p-2 m-2 cursor-pointer hover:bg-accent hover:text-accent-foreground',
-                                active ? 'ring-2 ring-offset-2' : '',
-                                checked ? 'bg-muted text-muted-foreground' : ''
+                                focus ? 'ring-2 ring-offset-2' : '',
+                                checked ? 'bg-muted text-muted-foreground' : '',
                             )
                         }
                     >
                         {({ checked }) => (
                             <>
-                                <RadioGroup.Label as="p">{data.title}</RadioGroup.Label>
+                                <Label as="p">{data.title}</Label>
                                 {checked && (
                                     <div className="shrink-0 text-primary">
                                         <CheckCircleIcon className="w-5 h-5" />
@@ -63,7 +63,7 @@ const PublicData: React.FC<IPublicDataProps> = ({ commonStore }) => {
                                 )}
                             </>
                         )}
-                    </RadioGroup.Option>
+                    </Radio>
                 ))}
             </RadioGroup>
             <Button
