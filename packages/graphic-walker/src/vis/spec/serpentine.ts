@@ -346,7 +346,7 @@ export function toSerpentineSpec(props: SerpentineSpecProps) {
                                 x: { field: 'x' },
                                 y: { field: 'y' },
                                 dy: { field: 'dy' },
-                                text: { field: 'domain' },
+                                text: { signal: "timeFormat(datum['domain'], '%Y-%m-%d')" },
                                 fontSize: { signal: '10' },
                                 fill: { value: '#000' },
                                 align: { value: 'center' },

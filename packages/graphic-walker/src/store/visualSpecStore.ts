@@ -441,6 +441,46 @@ export class VizSpecStore {
         this.visList[this.visIndex] = performers.setConfig(this.visList[this.visIndex], ...args);
     }
 
+    /**
+     * Update visual config without triggering MobX reactions that cause workflow re-execution.
+     *
+     * This method directly mutates the config object rather than creating new immutable copies.
+     * Since visList uses observable.shallow, deep mutations don't trigger reactions.
+     * After mutation, it manually dispatches a config-specific event for persistence.
+     *
+     * Use this for chart-specific configs (like serpentine) where UI changes shouldn't
+     * trigger expensive data recomputation. The config-only event ensures persistence
+     * without triggering the full chart update workflow.
+     *
+     * **Extensible Pattern**: Any custom chart can use this method for their config.
+     * Just call `vizStore.updateVisualConfigDirect('yourConfigKey', yourConfig)` and
+     * the plugin will handle persistence automatically without workflow triggers.
+     *
+     * @param args - Key-value tuple for config property to update
+     */
+    updateVisualConfigDirect(...args: KVTuple<IVisualConfigNew>) {
+        const [key, value] = args;
+
+        // Direct mutation - no new objects created, no MobX reactions triggered
+        // This works because visList uses observable.shallow which only tracks array changes
+        (this.currentVis.config as any)[key] = value;
+
+        // Dispatch config-specific event for persistence without workflow trigger
+        // This event type is separate from 'edit-graphic-walker' to avoid triggering
+        // the full chart update pipeline. Plugins can listen to this event to save
+        // config changes without re-rendering the entire visualization.
+        document.dispatchEvent(
+            new CustomEvent('visual-config-changed', {
+                detail: {
+                    configKey: key,
+                    configValue: value,
+                    spec: this.currentVis,
+                    instanceID: this.instanceID,
+                },
+            }),
+        );
+    }
+
     setCoordSystem(mode: ICoordMode) {
         this.visList[this.visIndex] = performers.setCoordSystem(this.visList[this.visIndex], mode);
     }

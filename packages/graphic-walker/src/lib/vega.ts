@@ -62,26 +62,11 @@ export function toVegaSpec({
 
     // Handle Serpentine Timeline as a special case - it uses raw Vega, not Vega-Lite
     if (geomType === 'serpentine') {
-        // Find the temporal field for the timeline domain
-        // Find the temporal field for the timeline domain
-        // Find the temporal field for the timeline domain
-        // User request: Use GW x-axis (columns) for temporal, y-axis (rows) for labels
-        // X-axis (Columns) -> Date/Domain
-        const dateField = columns.length > 0 ? columns[0] : null;
+        // X-axis (Columns) → Date field
+        const dateField = columns.length > 0 ? columns[0] : NULL_FIELD;
 
-        // Y-axis (Rows) -> Label
-        // Prioritize Rows channel for labels as requested, fallback to Text channel
-        const labelField = rows.length > 0 ? rows[0] : guard(text);
-
-        // DEBUG: Log data and fields to diagnose empty labels
-        if (dataSource.length > 0) {
-            console.log('[Serpentine Debug] First row keys:', Object.keys(dataSource[0]));
-            console.log('[Serpentine Debug] Date Field:', dateField?.fid, dateField?.semanticType);
-            console.log('[Serpentine Debug] Label Field:', labelField?.fid, labelField?.semanticType);
-            if (labelField) {
-                console.log('[Serpentine Debug] Label Value Sample:', dataSource[0][labelField.fid]);
-            }
-        }
+        // Y-axis (Rows) → Label field (fallback to Text channel)
+        const labelField = rows.length > 0 ? rows[0] : NULL_FIELD;
 
         // Color field if specified
         const colorField = guard(color);

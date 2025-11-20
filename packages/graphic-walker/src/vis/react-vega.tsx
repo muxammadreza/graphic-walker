@@ -294,32 +294,9 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
             displayOffset,
             vegaWidth,
             vegaHeight,
-            vegaHeight,
-            // NOTE: serpentine removed from deps - signals updated directly via useEffect below
+            vegaConfig,
         ],
     );
-
-    // Sync Serpentine config changes to Vega signals
-    useEffect(() => {
-        if (geomType === 'serpentine' && vegaRefs.current[0]?.view && serpentine) {
-            const view = vegaRefs.current[0].view;
-            const signalKeys = ['sH', 'labelsOnHover', 'sN', 'tC', 'mO', 'sR0P', 'sLP', 'annotationStart', 'annotationEnd', 'includeArrows', 'sT'];
-            let changed = false;
-            signalKeys.forEach((key) => {
-                // @ts-ignore
-                if (key in serpentine) {
-                    try {
-                        // @ts-ignore
-                        view.signal(key, serpentine[key]);
-                        changed = true;
-                    } catch (e) {
-                        // ignore
-                    }
-                }
-            });
-            if (changed) view.runAsync();
-        }
-    }, [serpentine, geomType]);
 
     // Render
     useEffect(() => {
