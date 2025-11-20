@@ -14,6 +14,7 @@ import { useResizeDetector } from 'react-resize-detector';
 import { startTask } from '../utils';
 import { themeContext } from '@/store/theme';
 import { format } from 'd3-format';
+import { serpentineViewService } from '../services/serpentineViewService';
 
 expressionFunction('formatBin', (datum: [number, number] | number, formatString?: string) => {
     const formatter = formatString ? format(formatString) : (x) => x;
@@ -293,9 +294,32 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
             displayOffset,
             vegaWidth,
             vegaHeight,
-            serpentine,
+            vegaHeight,
+            // NOTE: serpentine removed from deps - signals updated directly via useEffect below
         ],
     );
+
+    // Sync Serpentine config changes to Vega signals
+    useEffect(() => {
+        if (geomType === 'serpentine' && vegaRefs.current[0]?.view && serpentine) {
+            const view = vegaRefs.current[0].view;
+            const signalKeys = ['sH', 'labelsOnHover', 'sN', 'tC', 'mO', 'sR0P', 'sLP', 'annotationStart', 'annotationEnd', 'includeArrows', 'sT'];
+            let changed = false;
+            signalKeys.forEach((key) => {
+                // @ts-ignore
+                if (key in serpentine) {
+                    try {
+                        // @ts-ignore
+                        view.signal(key, serpentine[key]);
+                        changed = true;
+                    } catch (e) {
+                        // ignore
+                    }
+                }
+            });
+            if (changed) view.runAsync();
+        }
+    }, [serpentine, geomType]);
 
     // Render
     useEffect(() => {
@@ -369,6 +393,12 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
                             canvas,
                         },
                     ];
+
+                    // Register serpentine view for direct signal updates
+                    if (geomType === 'serpentine') {
+                        serpentineViewService.setView(res.view);
+                    }
+
                     try {
                         res.view.addEventListener('click', (e) => {
                             click$.next(e);

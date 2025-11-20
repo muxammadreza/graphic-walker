@@ -6,6 +6,8 @@
         "dev": "npm run dev:front_end",
         "gen-schema": "node scripts/create-json-schema.js",
         "build": "vite build && tspc --build && yarn gen-schema",
+        "build:dev": "vite build --mode development",
+        "build:dev:watch": "vite build --mode development --watch",
         "build:app": "vite build --config vite-app.config.ts",
         "serve": "vite preview",
         "type": "tsc src/lib.ts --declaration --emitDeclarationOnly --jsx react --esModuleInterop --outDir dist",

@@ -104,7 +104,7 @@ const PureRenderer = forwardRef<IReactVegaHandler, IPureRendererProps & (LocalPr
             ...rawLayout,
             ...(overrideSize ? { size: overrideSize } : {}),
         }),
-        [rawLayout, overrideSize]
+        [rawLayout, overrideSize],
     );
 
     const sizeMode = visualLayout.size.mode;
@@ -162,9 +162,7 @@ const PureRenderer = forwardRef<IReactVegaHandler, IPureRendererProps & (LocalPr
     const { coordSystem = 'generic' } = visualConfig;
     const isSpatial = coordSystem === 'geographic';
     const darkMode = useCurrentMediaTheme(appearance ?? dark);
-    const [currentTheme, setCurrentTheme] = useState<IThemeKey | GWGlobalConfig>(
-        (vizThemeConfig ?? themeConfig ?? themeKey) as IThemeKey | GWGlobalConfig
-    );
+    const [currentTheme, setCurrentTheme] = useState<IThemeKey | GWGlobalConfig>((vizThemeConfig ?? themeConfig ?? themeKey) as IThemeKey | GWGlobalConfig);
     const [portal, setPortal] = useState<HTMLDivElement | null>(null);
 
     return (
@@ -176,7 +174,10 @@ const PureRenderer = forwardRef<IReactVegaHandler, IPureRendererProps & (LocalPr
                 portalContainerContext={portal}
             >
                 {waiting && <LoadingLayer />}
-                <div className={`App relative ${darkMode === 'dark' ? 'dark' : ''}`} style={sizeMode === 'full' ? { width: '100%', height: '100%' } : undefined}>
+                <div
+                    className={`App relative ${darkMode === 'dark' ? 'dark' : ''}`}
+                    style={sizeMode === 'full' ? { width: '100%', height: '100%' } : undefined}
+                >
                     {isSpatial && (
                         <div className="max-w-full" style={{ height: LEAFLET_DEFAULT_HEIGHT, flexGrow: 1 }}>
                             <LeafletRenderer data={data} draggableFieldState={visualState} visualConfig={visualConfig} visualLayout={visualLayout} />
