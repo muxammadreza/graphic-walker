@@ -385,6 +385,56 @@ export class VizSpecStore {
 
     setMeta(meta: IMutField[]) {
         this.meta = meta;
+
+        // Update existing visualizations' field lists to match new meta
+        // This ensures field list UI updates when fields change
+        this.visList = this.visList.map((visSpec) => {
+            const currentEncodings = visSpec.now.encodings;
+
+            // Get current field IDs in use
+            const usedFieldIds = new Set<string>();
+            [...currentEncodings.dimensions, ...currentEncodings.measures, ...currentEncodings.filters].forEach((f) => usedFieldIds.add(f.fid));
+
+            // Build new dimensions and measures from updated meta
+            const newDimensions = meta
+                .filter((f) => f.analyticType === 'dimension')
+                .map(
+                    (f): IViewField => ({
+                        fid: f.fid,
+                        name: f.name || f.fid,
+                        basename: f.basename || f.name || f.fid,
+                        semanticType: f.semanticType,
+                        analyticType: f.analyticType,
+                        offset: f.offset,
+                    }),
+                );
+
+            const newMeasures = meta
+                .filter((f) => f.analyticType === 'measure')
+                .map(
+                    (f): IViewField => ({
+                        fid: f.fid,
+                        name: f.name || f.fid,
+                        basename: f.basename || f.name || f.fid,
+                        analyticType: f.analyticType,
+                        semanticType: f.semanticType,
+                        aggName: 'sum',
+                        offset: f.offset,
+                    }),
+                );
+
+            // Update the current visualization's encodings
+            const updatedChart: IChart = {
+                ...visSpec.now,
+                encodings: {
+                    ...currentEncodings,
+                    dimensions: newDimensions.concat(currentEncodings.dimensions.filter((f) => f.fid === MEA_KEY_ID || f.fid === PAINT_FIELD_ID || f.computed)),
+                    measures: newMeasures.concat(currentEncodings.measures.filter((f) => f.fid === COUNT_FIELD_ID || f.fid === MEA_VAL_ID || f.computed)),
+                },
+            };
+
+            return fromSnapshot(updatedChart);
+        });
     }
 
     setOnMetaChange(onMetaChange?: (fid: string, diffMeta: Partial<IMutField>) => void) {

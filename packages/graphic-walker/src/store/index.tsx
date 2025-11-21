@@ -21,8 +21,8 @@ const getVizStore = createKeepAliveContext(
             empty?: boolean;
             onMetaChange?: (fid: string, diffMeta: Partial<IMutField>) => void;
             defaultConfig?: IDefaultConfig;
-        }
-    ) => new VizSpecStore(meta, opts)
+        },
+    ) => new VizSpecStore(meta, opts),
 );
 
 export const VisContext = React.createContext<VizSpecStore>(null!);
@@ -49,11 +49,15 @@ export const VizStoreWrapper = (props: VizStoreWrapperProps) => {
               }
             : props.defaultConfig;
         return getVizStore(storeKey, props.meta, { onMetaChange: props.onMetaChange, defaultConfig });
-    // IMPORTANT the store is only associated with the storeKey
+        // IMPORTANT the store is only associated with the storeKey
     }, [storeKey]);
     const lastMeta = useRef(props.meta);
     useEffect(() => {
-        if (lastMeta.current !== props.meta) {
+        // Deep comparison: check if field IDs have changed
+        // This handles cases where the array reference is the same but content changed
+        const metaChanged = lastMeta.current.length !== props.meta.length || !lastMeta.current.every((field, i) => field.fid === props.meta[i]?.fid);
+
+        if (metaChanged) {
             store.setMeta(props.meta);
             lastMeta.current = props.meta;
         }
