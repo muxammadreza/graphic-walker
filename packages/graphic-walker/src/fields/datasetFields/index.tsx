@@ -98,6 +98,7 @@ const DatasetFields: React.FC = (props) => {
             <Collapsible
                 open={isFieldListOpen}
                 onOpenChange={setIsFieldListOpen}
+                data-testid="field-list-container"
                 className="w-full flex flex-col"
                 style={{ height: geoms[0] === 'serpentine' ? `${fieldListHeightPercent}%` : '100%', minHeight: 0 }}
             >

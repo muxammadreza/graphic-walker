@@ -48,7 +48,7 @@ const ToolbarSelectButton = memo<IToolbarProps<ToolbarSelectButtonItem>>(functio
                     </Button>
                 </DropdownMenuTrigger>
             </ToolbarItemContainer>
-            <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
+            <DropdownMenuContent data-testid={key === 'mark_type' ? 'chart-type-selector' : undefined} onCloseAutoFocus={(e) => e.preventDefault()}>
                 <DropdownMenuRadioGroup value={value} onValueChange={onSelect}>
                     {options.map((option) => {
                         const OptionIcon = option.icon;

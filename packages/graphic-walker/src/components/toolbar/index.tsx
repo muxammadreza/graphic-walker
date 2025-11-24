@@ -15,7 +15,7 @@ const Toolbar = memo<ToolbarProps>(function Toolbar({ items }) {
     const [openedKey, setOpenedKey] = useState<string | null>(null);
 
     return (
-        <div className="flex flex-wrap lg:flex-nowrap border my-1 w-full rounded overflow-hidden">
+        <div data-testid="toolbar-container" className="flex flex-wrap lg:flex-nowrap border my-1 w-full rounded overflow-hidden">
             {items.map((item, i) => {
                 if (item === ToolbarItemSplitter) {
                     return <Separator orientation="vertical" className="mx-1 my-1.5 h-6" key={i} />;
