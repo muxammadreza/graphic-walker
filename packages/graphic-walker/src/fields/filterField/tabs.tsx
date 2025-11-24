@@ -112,7 +112,15 @@ const TabPanel = styled.div``;
 
 const TabItem = styled.div``;
 
-const StatusCheckbox: React.FC<{ currentNum: number; totalNum: number; onChange: () => void; disabled?: boolean; loading?: boolean }> = (props) => {
+const StatusCheckbox: React.FC<{
+    currentNum: number;
+    totalNum: number;
+    onChange: () => void;
+    disabled?: boolean;
+    loading?: boolean;
+    'data-testid'?: string;
+    'aria-label'?: string;
+}> = (props) => {
     const { currentNum, totalNum, onChange } = props;
 
     let checked: boolean | 'indeterminate';
@@ -127,7 +135,15 @@ const StatusCheckbox: React.FC<{ currentNum: number; totalNum: number; onChange:
     if (props.loading) {
         return <Spinner className="h-4 w-4 text-muted-foreground" />;
     }
-    return <Checkbox checked={checked} disabled={props.disabled} onCheckedChange={() => onChange()} />;
+    return (
+        <Checkbox
+            checked={checked}
+            disabled={props.disabled}
+            onCheckedChange={() => onChange()}
+            data-testid={props['data-testid']}
+            aria-label={props['aria-label']}
+        />
+    );
 };
 
 // TODO: refactor this function
@@ -143,7 +159,7 @@ export const useFieldStats = (
     },
     sortBy: 'value' | 'value_dsc' | 'count' | 'count_dsc' | 'none',
     computation: IComputationFunction,
-    allFields: IMutField[]
+    allFields: IMutField[],
 ): [IFieldStats | null, IFieldStats | null] => {
     const { values, range, valuesMeta, selectedCount, displayOffset, keyword } = attributes;
     const [loading, setLoading] = React.useState(true);
@@ -194,7 +210,7 @@ export const useVisualCount = (
     options: {
         displayOffset: number | undefined;
         keyword?: IKeyWord;
-    }
+    },
 ) => {
     // fetch metaData of filter field, only fetch once per fid.
     const initRuleValue = useMemo(() => (field.rule?.type === 'not in' || field.rule?.type === 'one of' ? field.rule.value : []), [field.fid, computation]);
@@ -203,14 +219,14 @@ export const useVisualCount = (
         { values: false, range: false, selectedCount: initRuleValue, valuesMeta: true, displayOffset: options.displayOffset },
         'none',
         computation,
-        allFields
+        allFields,
     );
     const [currentMeta, lastCurrentMeta] = useFieldStats(
         field,
         { values: false, range: false, valuesMeta: true, keyword: options.keyword },
         'none',
         computation,
-        allFields
+        allFields,
     );
     // sum of count of rule.
     const [selectedValueSum, setSelectedValueSum] = useState(0);
@@ -252,7 +268,7 @@ export const useVisualCount = (
                             timezoneDisplayOffset: options.displayOffset,
                             keyword: options.keyword,
                         },
-                        allFields
+                        allFields,
                     );
                     loadingRef.current[page] = promise;
                     promise.then((stats) => {
@@ -268,7 +284,7 @@ export const useVisualCount = (
                 // already fetching, skip
             }
         },
-        [computation, field.fid, sortBy, allFields, options.displayOffset, options.keyword]
+        [computation, field.fid, sortBy, allFields, options.displayOffset, options.keyword],
     );
     // clear data when field or sort changes
     useEffect(() => {
@@ -288,8 +304,8 @@ export const useVisualCount = (
         field.rule?.type === 'one of'
             ? field.rule.value.length
             : metaData && field.rule?.type === 'not in'
-            ? metaData.valuesMeta.distinctTotal - field.rule.value.length
-            : 0;
+              ? metaData.valuesMeta.distinctTotal - field.rule.value.length
+              : 0;
 
     const currentSum =
         field.rule?.type === 'one of' ? selectedValueSum : metaData && field.rule?.type === 'not in' ? metaData.valuesMeta.total - selectedValueSum : 0;
@@ -330,7 +346,7 @@ export const useVisualCount = (
                     keyword: options.keyword,
                     timezoneDisplayOffset: options.displayOffset,
                 },
-                allFields
+                allFields,
             );
 
             const { values } = result;
@@ -386,7 +402,7 @@ export const useVisualCount = (
                 value: Array.from(newValue),
             });
         },
-        [field.rule, onChange]
+        [field.rule, onChange],
     );
 
     return {
@@ -419,7 +435,7 @@ interface SortConfig {
     ascending: boolean;
 }
 
-function Toggle(props: { children?: React.ReactNode; value: boolean; onChange?: (v: boolean) => void; label?: string }) {
+function Toggle(props: { children?: React.ReactNode; value: boolean; onChange?: (v: boolean) => void; label?: string; 'data-testid'?: string }) {
     return (
         <Tooltip content={props.label}>
             <div
@@ -428,8 +444,13 @@ function Toggle(props: { children?: React.ReactNode; value: boolean; onChange?: 
                 }}
                 className={classNames(
                     props.value ? 'bg-primary text-primary-foreground' : 'hover:bg-accent',
-                    'rounded cursor-pointer p-1 w-6 h-6 flex items-center justify-center'
+                    'rounded cursor-pointer p-1 w-6 h-6 flex items-center justify-center',
                 )}
+                data-testid={props['data-testid']}
+                aria-label={props.label}
+                aria-pressed={props.value}
+                role="button"
+                tabIndex={0}
             >
                 {props.children}
             </div>
@@ -437,12 +458,13 @@ function Toggle(props: { children?: React.ReactNode; value: boolean; onChange?: 
     );
 }
 
-const SortButton: React.FC<{ id: string; config: SortConfig; currentKey: SortConfig['key']; setSortConfig: (value: SortConfig) => void }> = ({
-    config: { key, ascending },
-    currentKey,
-    setSortConfig,
-    id,
-}) => {
+const SortButton: React.FC<{
+    id: string;
+    config: SortConfig;
+    currentKey: SortConfig['key'];
+    setSortConfig: (value: SortConfig) => void;
+    'data-testid'?: string;
+}> = ({ config: { key, ascending }, currentKey, setSortConfig, id, 'data-testid': dataTestId }) => {
     const isCurrentKey = key === currentKey;
     return (
         <Button
@@ -454,6 +476,8 @@ const SortButton: React.FC<{ id: string; config: SortConfig; currentKey: SortCon
                 e.preventDefault();
                 setSortConfig({ key: currentKey, ascending: isCurrentKey ? !ascending : true });
             }}
+            data-testid={dataTestId}
+            aria-label={`Sort by ${currentKey} ${isCurrentKey && !ascending ? 'ascending' : 'descending'}`}
         >
             {isCurrentKey && !ascending ? <ChevronDownIcon className="h-4 w-4" /> : <ChevronUpIcon className="h-4 w-4" />}
         </Button>
@@ -493,7 +517,7 @@ export const FilterOneOfRule: React.FC<RuleFormProps & { active: boolean }> = ({
                       regexp: isRegexp,
                   }
                 : undefined,
-        [keywordValue, isCaseSenstive, isWord, isRegexp]
+        [keywordValue, isCaseSenstive, isWord, isRegexp],
     );
 
     const debouncer = useMemo(() => {
@@ -544,7 +568,7 @@ export const FilterOneOfRule: React.FC<RuleFormProps & { active: boolean }> = ({
             field.rule && (field.rule.type === 'not in' || field.rule?.type === 'one of')
                 ? new Set(field.rule.value.map((x) => _unstable_encodeRuleValue(x)))
                 : null,
-        [field]
+        [field],
     );
 
     return field.rule?.type === 'one of' || field.rule?.type === 'not in' ? (
@@ -552,10 +576,22 @@ export const FilterOneOfRule: React.FC<RuleFormProps & { active: boolean }> = ({
             <div>{t('constant.filter_type.one_of')}</div>
             <div className="text-muted-foreground">{t('constant.filter_type.one_of_desc')}</div>
             <div className="btn-grp">
-                <Button variant="outline" size="sm" onClick={() => handleToggleFullOrEmptySet()}>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleToggleFullOrEmptySet()}
+                    data-testid="filter-select-all-btn"
+                    aria-label={currentCount === distinctTotal ? 'Unselect all values' : 'Select all values'}
+                >
                     {currentCount === distinctTotal ? t('filters.btn.unselect_all') : t('filters.btn.select_all')}
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => handleToggleReverseSet()}>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleToggleReverseSet()}
+                    data-testid="filter-reverse-selection-btn"
+                    aria-label="Reverse selection"
+                >
                     {t('filters.btn.reverse')}
                 </Button>
             </div>
@@ -569,9 +605,11 @@ export const FilterOneOfRule: React.FC<RuleFormProps & { active: boolean }> = ({
                         onChange={(e) => {
                             setKeyword(e.target.value);
                         }}
+                        data-testid="filter-search-input"
+                        aria-label="Search filter values"
                     />
                     <div className="absolute flex space-x-1 items-center inset-y-0 right-2">
-                        <Toggle label="Match Case" value={isCaseSenstive} onChange={setIsCaseSenstive}>
+                        <Toggle label="Match Case" value={isCaseSenstive} onChange={setIsCaseSenstive} data-testid="filter-search-match-case">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
                                 <path
                                     fill="currentColor"
@@ -579,7 +617,7 @@ export const FilterOneOfRule: React.FC<RuleFormProps & { active: boolean }> = ({
                                 />
                             </svg>
                         </Toggle>
-                        <Toggle label="Match Whole Word" value={isWord} onChange={setIsWord}>
+                        <Toggle label="Match Whole Word" value={isWord} onChange={setIsWord} data-testid="filter-search-match-word">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
                                 <g fill="currentColor">
                                     <path fillRule="evenodd" d="M0 11h1v2h14v-2h1v3H0z" clipRule="evenodd" />
@@ -587,7 +625,7 @@ export const FilterOneOfRule: React.FC<RuleFormProps & { active: boolean }> = ({
                                 </g>
                             </svg>
                         </Toggle>
-                        <Toggle label="Use Regular Expression" value={isRegexp} onChange={setIsRegexp}>
+                        <Toggle label="Use Regular Expression" value={isRegexp} onChange={setIsRegexp} data-testid="filter-search-use-regex">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
                                 <path
                                     fill="currentColor"
@@ -609,15 +647,29 @@ export const FilterOneOfRule: React.FC<RuleFormProps & { active: boolean }> = ({
                                 totalNum={distinctTotal ?? 0}
                                 onChange={handleToggleCurrentFullSet}
                                 loading={loadingSelectAll}
+                                data-testid="filter-select-all-checkbox"
+                                aria-label="Select all visible values"
                             />
                         </div>
-                        <div className="header text-muted-foreground flex items-center">
+                        <div className="header text-muted-foreground flex items-center" data-testid="filter-column-value">
                             <label htmlFor="value_sort">{t('filters.header.value')}</label>
-                            <SortButton id="value_sort" currentKey="value" setSortConfig={setSortConfig} config={sortConfig} />
+                            <SortButton
+                                id="value_sort"
+                                currentKey="value"
+                                setSortConfig={setSortConfig}
+                                config={sortConfig}
+                                data-testid="filter-sort-value-btn"
+                            />
                         </div>
-                        <div className="header text-muted-foreground flex items-center">
+                        <div className="header text-muted-foreground flex items-center" data-testid="filter-column-count">
                             <label htmlFor="count_sort">{t('filters.header.count')}</label>
-                            <SortButton id="count_sort" currentKey="count" setSortConfig={setSortConfig} config={sortConfig} />
+                            <SortButton
+                                id="count_sort"
+                                currentKey="count"
+                                setSortConfig={setSortConfig}
+                                config={sortConfig}
+                                data-testid="filter-sort-count-btn"
+                            />
                         </div>
                     </TableRow>
                 </Table>
@@ -712,6 +764,7 @@ export const FilterOneOfRule: React.FC<RuleFormProps & { active: boolean }> = ({
                                         (!!ruleSet && field.rule?.type === 'not in' && !ruleSet.has(_unstable_encodeRuleValue(value)));
                                     const displayValue =
                                         field.semanticType === 'temporal' ? formatDate(parsedOffsetDate(displayOffset, field.offset)(value)) : `${value}`;
+                                    const encodedValue = encodeURIComponent(String(value)).substring(0, 50);
                                     return (
                                         <TableRow
                                             key={idx}
@@ -732,9 +785,10 @@ export const FilterOneOfRule: React.FC<RuleFormProps & { active: boolean }> = ({
                                                     aria-describedby={`${id}_label`}
                                                     title={displayValue}
                                                     onCheckedChange={(checked) => handleSelect(value, !!checked, count)}
+                                                    data-testid={`filter-value-checkbox-${encodedValue}`}
                                                 />
                                             </div>
-                                            <label id={`${id}_label`} htmlFor={id} title={displayValue}>
+                                            <label id={`${id}_label`} htmlFor={id} title={displayValue} data-testid={`filter-value-label-${encodedValue}`}>
                                                 {displayValue}
                                             </label>
                                             <label htmlFor={id}>{count}</label>
@@ -749,7 +803,9 @@ export const FilterOneOfRule: React.FC<RuleFormProps & { active: boolean }> = ({
                     <Table className="text-muted-foreground">
                         <TableRow>
                             <label></label>
-                            <label>{t('filters.selected_keys', { count: currentCount })}</label>
+                            <label data-testid="filter-selected-summary" aria-live="polite">
+                                {t('filters.selected_keys', { count: currentCount })}
+                            </label>
                             <label>{currentSum}</label>
                         </TableRow>
                     </Table>
@@ -766,6 +822,7 @@ interface CalendarInputProps {
     value: number;
     onChange: (value: number) => void;
     className?: string;
+    'data-testid'?: string;
 }
 
 export const CalendarInput: React.FC<CalendarInputProps> = (props) => {
@@ -781,17 +838,20 @@ export const CalendarInput: React.FC<CalendarInputProps> = (props) => {
             onChange(timestamp);
         }
     };
+    const formattedDate = dateStringFormatter(value);
     return (
         <input
             className={classNames(
                 'dark:[color-scheme:dark] flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
-                props.className ?? ''
+                props.className ?? '',
             )}
             type="datetime-local"
             min={dateStringFormatter(min)}
             max={dateStringFormatter(max)}
-            defaultValue={dateStringFormatter(value)}
+            defaultValue={formattedDate}
             onChange={(e) => handleSubmitDate(e.target.value)}
+            data-testid={props['data-testid']}
+            aria-label={`Date: ${formattedDate}`}
         />
     );
 };
@@ -805,7 +865,7 @@ export const FilterTemporalRangeRule: React.FC<RuleFormProps & { active: boolean
 
     React.useEffect(() => {
         withComputedField(field, allFields, computationFunction, { timezoneDisplayOffset: displayOffset })((service) =>
-            getTemporalRange(service, field.fid, field.offset)
+            getTemporalRange(service, field.fid, field.offset),
         ).then(([min, max, format]) => setRes([min, max, format, true]));
     }, [field.fid]);
 
@@ -833,7 +893,7 @@ export const FilterTemporalRangeRule: React.FC<RuleFormProps & { active: boolean
                 offset,
             });
         },
-        [format, offset]
+        [format, offset],
     );
 
     if (!loaded) {
@@ -857,6 +917,8 @@ export const FilterTemporalRangeRule: React.FC<RuleFormProps & { active: boolean
                         max={field.rule.value[1] ?? max}
                         value={field.rule.value[0] ?? min}
                         onChange={(value) => handleChange([value, field.rule?.value[1]])}
+                        className="w-full"
+                        data-testid="filter-temporal-start"
                     />
                 </div>
                 <div className="calendar-input">
@@ -867,6 +929,8 @@ export const FilterTemporalRangeRule: React.FC<RuleFormProps & { active: boolean
                         max={max}
                         value={field.rule.value[1] ?? max}
                         onChange={(value) => handleChange([field.rule?.value[0], value])}
+                        className="w-full"
+                        data-testid="filter-temporal-end"
                     />
                 </div>
             </CalendarInputContainer>
@@ -957,12 +1021,18 @@ const Tabs: React.FC<TabsProps> = ({ allFields, field, onChange, tabs, displayOf
 
     return (
         <TabsContainer>
-            <RadioGroup value={which} onValueChange={(s) => setWhich(s as (typeof tabs)[number])}>
+            <RadioGroup value={which} onValueChange={(s) => setWhich(s as (typeof tabs)[number])} data-testid="filter-rule-tabs" aria-label="Filter rule type">
                 {tabs.map((option) => {
+                    const tabKey = tabOptionDict[option].key.replace(/_/g, '-');
                     return (
                         <div className="flex my-2" key={option}>
                             <div className="align-top">
-                                <RadioGroupItem id={option} value={option} />
+                                <RadioGroupItem
+                                    id={option}
+                                    value={option}
+                                    data-testid={`filter-tab-${tabKey}`}
+                                    aria-label={`${t(tabOptionDict[option].key)} filter rule`}
+                                />
                             </div>
                             <div className="ml-3">
                                 <Label htmlFor={option}>{t(tabOptionDict[option].key)}</Label>

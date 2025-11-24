@@ -18,10 +18,11 @@ const MeaFields: React.FC = (props) => {
     const menuActions = useMenuActions('measures');
 
     return (
-        <div className='relative touch-none'>
+        <div className="relative touch-none">
             {measures.map((f, index) => (
                 <Draggable key={getFieldIdentifier(f)} draggableId={`measure_${getFieldIdentifier(f)}`} index={index}>
                     {(provided, snapshot) => {
+                        const fieldId = getFieldIdentifier(f);
                         return (
                             <div className="block">
                                 <ActionMenu
@@ -36,6 +37,10 @@ const MeaFields: React.FC = (props) => {
                                         }`}
                                         isDragging={snapshot.isDragging}
                                         ref={refMapper(provided.innerRef)}
+                                        data-testid={`field-measure-${fieldId}`}
+                                        aria-label={`${f.name} measure field`}
+                                        role="button"
+                                        tabIndex={0}
                                         {...provided.draggableProps}
                                         {...provided.dragHandleProps}
                                     >
@@ -53,6 +58,7 @@ const MeaFields: React.FC = (props) => {
                                                 snapshot.isDragging ? 'bg-measure/20 flex' : 'hidden'
                                             }`}
                                             isDragging={snapshot.isDragging}
+                                            aria-hidden="true"
                                         >
                                             <DataTypeIcon dataType={f.semanticType} analyticType={f.analyticType} />
                                             <span className="ml-0.5" title={f.name}>

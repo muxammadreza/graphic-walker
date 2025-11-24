@@ -14,7 +14,16 @@ const ToolbarToggleButton = memo<IToolbarProps<ToolbarToggleButtonItem>>(functio
 
     return (
         <ToolbarItemContainer {...props}>
-            <Toggle variant="none" disabled={disabled} size="toolbar" pressed={checked} onPressedChange={onChange}>
+            <Toggle
+                variant="none"
+                disabled={disabled}
+                size="toolbar"
+                pressed={checked}
+                onPressedChange={onChange}
+                data-testid={`toolbar-${item.key}`}
+                aria-label={item.label}
+                aria-pressed={checked}
+            >
                 <Icon className="w-[18px] h-[18px]" style={styles?.icon} />
             </Toggle>
         </ToolbarItemContainer>

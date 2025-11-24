@@ -19,6 +19,7 @@ const DimFields: React.FC = (props) => {
             {dimensions.map((f, index) => (
                 <Draggable key={getFieldIdentifier(f)} draggableId={`dimension_${getFieldIdentifier(f)}`} index={index}>
                     {(provided, snapshot) => {
+                        const fieldId = getFieldIdentifier(f);
                         return (
                             <ActionMenu title={f.name || f.fid} menu={menuActions[index]} enableContextMenu={false} disabled={snapshot.isDragging}>
                                 <FieldPill
@@ -27,6 +28,10 @@ const DimFields: React.FC = (props) => {
                                     }`}
                                     ref={refMapper(provided.innerRef)}
                                     isDragging={snapshot.isDragging}
+                                    data-testid={`field-dimension-${fieldId}`}
+                                    aria-label={`${f.name} dimension field`}
+                                    role="button"
+                                    tabIndex={0}
                                     {...provided.draggableProps}
                                     {...provided.dragHandleProps}
                                 >
@@ -44,6 +49,7 @@ const DimFields: React.FC = (props) => {
                                             snapshot.isDragging ? 'bg-dimension/20 flex' : 'hidden'
                                         }`}
                                         isDragging={snapshot.isDragging}
+                                        aria-hidden="true"
                                     >
                                         <DataTypeIcon dataType={f.semanticType} analyticType={f.analyticType} />
                                         <span className="ml-0.5" title={f.name}>

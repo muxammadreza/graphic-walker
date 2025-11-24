@@ -43,7 +43,7 @@ function useDomainScale() {
             ...(enableMaxDomain ? { domainMax } : {}),
             ...(enableMinDomain ? { domainMin } : {}),
         }),
-        [enableMaxDomain && domainMax, enableMinDomain && domainMin, enableType && type]
+        [enableMaxDomain && domainMax, enableMinDomain && domainMin, enableType && type],
     );
     return {
         value,
@@ -86,7 +86,7 @@ function useScale(minRange: number, maxRange: number, defaultMinRange?: number, 
             setRangeMin(value.rangeMin ?? defaultMinRange ?? minRange);
             setType(value.type ?? 'linear');
         },
-        [defaultMaxRange, defaultMinRange, maxRange, minRange]
+        [defaultMaxRange, defaultMinRange, maxRange, minRange],
     );
 
     const value = useMemo(
@@ -96,7 +96,7 @@ function useScale(minRange: number, maxRange: number, defaultMinRange?: number, 
             ...(enableMinDomain ? { domainMin } : {}),
             ...(enableRange ? { rangeMax, rangeMin } : {}),
         }),
-        [enableMaxDomain && domainMax, enableMinDomain && domainMin, enableRange && rangeMax, enableRange && rangeMin, enableType && type]
+        [enableMaxDomain && domainMax, enableMinDomain && domainMin, enableRange && rangeMax, enableRange && rangeMin, enableType && type],
     );
 
     return {
@@ -154,9 +154,7 @@ const VisualConfigPanel: React.FC = () => {
     const [displayBackgroundPicker, setDisplayBackgroundPicker] = useState(false);
     const [colorPalette, setColorPalette] = useState('');
     const { vizThemeConfig, setVizThemeConfig } = useContext(vegaThemeContext);
-    const [themeKey, setThemeKey] = useState<IThemeKey>(
-        typeof vizThemeConfig === 'string' ? vizThemeConfig : 'vega'
-    );
+    const [themeKey, setThemeKey] = useState<IThemeKey>(typeof vizThemeConfig === 'string' ? vizThemeConfig : 'vega');
     const [geoMapTileUrl, setGeoMapTileUrl] = useState<string | undefined>(undefined);
     const [displayOffset, setDisplayOffset] = useState<number | undefined>(undefined);
     const [displayOffsetEdited, setDisplayOffsetEdited] = useState(false);
@@ -183,8 +181,8 @@ const VisualConfigPanel: React.FC = () => {
                     b: 255,
                     a: 0,
                 },
-                layout.background
-            )
+                layout.background,
+            ),
         );
         setResolve(layout.resolve);
         setDefaultColor(extractRGBA({ r: 91, g: 143, b: 249, a: 1 }, layout.primaryColor));
@@ -220,6 +218,7 @@ const VisualConfigPanel: React.FC = () => {
             onOpenChange={() => {
                 vizStore.setShowVisualConfigPanel(false);
             }}
+            data-testid="visual-config-dialog"
         >
             <DialogNormalContent
                 className="p-0"
@@ -230,7 +229,7 @@ const VisualConfigPanel: React.FC = () => {
             >
                 <div className="flex flex-col max-h-[calc(min(800px,90vh))] py-6">
                     <div className="overflow-y-auto flex-shrink-1 min-h-0 px-6">
-                        <ConfigItemContainer>
+                        <ConfigItemContainer data-testid="visual-config-colors-section">
                             <ConfigItemHeader>
                                 <ConfigItemTitle>Colors</ConfigItemTitle>
                             </ConfigItemHeader>
@@ -303,7 +302,7 @@ const VisualConfigPanel: React.FC = () => {
                                 </div>
                             </ConfigItemContent>
                         </ConfigItemContainer>
-                        <ConfigItemContainer>
+                        <ConfigItemContainer data-testid="visual-config-scale-section">
                             <ConfigItemHeader>
                                 <div className="flex justify-between items-center">
                                     <ConfigItemTitle>Scale</ConfigItemTitle>
@@ -376,7 +375,7 @@ const VisualConfigPanel: React.FC = () => {
                                 )}
                             </ConfigItemContent>
                         </ConfigItemContainer>
-                        <ConfigItemContainer>
+                        <ConfigItemContainer data-testid="visual-config-format-section">
                             <ConfigItemHeader>
                                 <ConfigItemTitle>{t('config.format')}</ConfigItemTitle>
                                 <p className="text-xs">
@@ -401,6 +400,8 @@ const VisualConfigPanel: React.FC = () => {
                                                             [fc]: e.target.value,
                                                         }));
                                                     }}
+                                                    data-testid={`visual-config-${fc}`}
+                                                    aria-label={t(`config.${fc}`)}
                                                 />
                                             </div>
                                         </div>
@@ -408,7 +409,7 @@ const VisualConfigPanel: React.FC = () => {
                                 </div>
                             </ConfigItemContent>
                         </ConfigItemContainer>
-                        <ConfigItemContainer>
+                        <ConfigItemContainer data-testid="visual-config-resolve-section">
                             <ConfigItemHeader>
                                 <ConfigItemTitle>{t('config.independence')}</ConfigItemTitle>
                             </ConfigItemHeader>
@@ -443,7 +444,7 @@ const VisualConfigPanel: React.FC = () => {
                                 </div>
                             </ConfigItemContent>
                         </ConfigItemContainer>
-                        <ConfigItemContainer>
+                        <ConfigItemContainer data-testid="visual-config-misc-section">
                             <ConfigItemHeader>
                                 <ConfigItemTitle>{t('config.misc')}</ConfigItemTitle>
                             </ConfigItemHeader>
@@ -452,17 +453,13 @@ const VisualConfigPanel: React.FC = () => {
                                     {/* Map Configuration Group */}
                                     <div className="space-y-2 border-b pb-4">
                                         <h3 className="text-sm font-medium">{t('config.map_settings')}</h3>
-                                        <p className="text-xs text-gray-500 mb-4">
-                                            {t('config.map_settings_desc')}
-                                        </p>
-                                        
+                                        <p className="text-xs text-gray-500 mb-4">{t('config.map_settings_desc')}</p>
+
                                         <div className="border rounded-md p-4">
                                             <div className="flex justify-between items-center">
                                                 <div>
                                                     <label className="text-xs font-medium leading-6">{t(`config.customTile`)}</label>
-                                                    <p className="text-xs text-gray-500">
-                                                        {t('config.customTile_desc')}
-                                                    </p>
+                                                    <p className="text-xs text-gray-500">{t('config.customTile_desc')}</p>
                                                 </div>
                                                 <Toggle
                                                     enabled={isNotEmpty(geoMapTileUrl)}
@@ -471,7 +468,7 @@ const VisualConfigPanel: React.FC = () => {
                                                     }}
                                                 />
                                             </div>
-                                            
+
                                             {isNotEmpty(geoMapTileUrl) && (
                                                 <Input
                                                     type="text"
@@ -489,18 +486,14 @@ const VisualConfigPanel: React.FC = () => {
                                     {/* Choropleth Settings Group */}
                                     <div className="space-y-2 border-b pb-4">
                                         <h3 className="text-sm font-medium">{t('config.choropleth_settings')}</h3>
-                                        <p className="text-xs text-gray-500 mb-4">
-                                            {t('config.choropleth_settings_desc')}
-                                        </p>
-                                        
+                                        <p className="text-xs text-gray-500 mb-4">{t('config.choropleth_settings_desc')}</p>
+
                                         <div className="border rounded-md">
                                             <div className="p-4">
                                                 <div className="flex justify-between items-center">
                                                     <div>
                                                         <label className="text-xs font-medium leading-6">{t('config.include_unmatched')}</label>
-                                                        <p className="text-xs text-gray-500">
-                                                            {t('config.include_unmatched_desc')}
-                                                        </p>
+                                                        <p className="text-xs text-gray-500">{t('config.include_unmatched_desc')}</p>
                                                     </div>
                                                     <Toggle
                                                         enabled={scaleIncludeUnmatchedChoropleth}
@@ -510,16 +503,14 @@ const VisualConfigPanel: React.FC = () => {
                                                     />
                                                 </div>
                                             </div>
-                                            
+
                                             <hr />
-                                            
+
                                             <div className="p-4">
                                                 <div className="flex justify-between items-center">
                                                     <div>
                                                         <label className="text-xs font-medium leading-6">{t('config.include_shapes')}</label>
-                                                        <p className="text-xs text-gray-500">
-                                                            {t('config.include_shapes_desc')}
-                                                        </p>
+                                                        <p className="text-xs text-gray-500">{t('config.include_shapes_desc')}</p>
                                                     </div>
                                                     <Toggle
                                                         enabled={showAllGeoshapeInChoropleth}
@@ -535,18 +526,14 @@ const VisualConfigPanel: React.FC = () => {
                                     {/* Visualization Settings Group */}
                                     <div className="space-y-2 border-b pb-4">
                                         <h3 className="text-sm font-medium">{t('config.visualization_settings')}</h3>
-                                        <p className="text-xs text-gray-500 mb-4">
-                                            {t('config.visualization_settings_desc')}
-                                        </p>
-                                        
+                                        <p className="text-xs text-gray-500 mb-4">{t('config.visualization_settings_desc')}</p>
+
                                         <div className="border rounded-md">
-                                            <div className='p-4'>
+                                            <div className="p-4">
                                                 <div className="flex justify-between items-center">
                                                     <div>
                                                         <label className="text-xs font-medium leading-6">{t(`config.zeroScale`)}</label>
-                                                        <p className="text-xs text-gray-500">
-                                                            {t('config.zeroScale_desc')}
-                                                        </p>
+                                                        <p className="text-xs text-gray-500">{t('config.zeroScale_desc')}</p>
                                                     </div>
                                                     <Toggle
                                                         enabled={zeroScale}
@@ -558,14 +545,12 @@ const VisualConfigPanel: React.FC = () => {
                                             </div>
 
                                             <hr />
-                                            
-                                            <div className='p-4'>
+
+                                            <div className="p-4">
                                                 <div className="flex justify-between items-center">
                                                     <div>
                                                         <label className="text-xs font-medium leading-6">{t(`config.svg`)}</label>
-                                                        <p className="text-xs text-gray-500">
-                                                            {t('config.svg_desc')}
-                                                        </p>
+                                                        <p className="text-xs text-gray-500">{t('config.svg_desc')}</p>
                                                     </div>
                                                     <Toggle
                                                         enabled={svg}
@@ -577,14 +562,12 @@ const VisualConfigPanel: React.FC = () => {
                                             </div>
 
                                             <hr />
-                                            
-                                            <div className='p-4'>
+
+                                            <div className="p-4">
                                                 <div className="flex justify-between items-center">
                                                     <div>
                                                         <label className="text-xs font-medium leading-6">Renderer</label>
-                                                        <p className="text-xs text-gray-500">
-                                                            Choose between VegaLite and Observable Plot renderers
-                                                        </p>
+                                                        <p className="text-xs text-gray-500">Choose between VegaLite and Observable Plot renderers</p>
                                                     </div>
                                                     <Combobox
                                                         className="w-40 h-fit"
@@ -604,17 +587,13 @@ const VisualConfigPanel: React.FC = () => {
                                     {/* Timezone Settings Group */}
                                     <div className="space-y-2">
                                         <h3 className="text-sm font-medium">{t('config.timezone_settings')}</h3>
-                                        <p className="text-xs text-gray-500 mb-4">
-                                            {t('config.timezone_settings_desc')}
-                                        </p>
-                                        
+                                        <p className="text-xs text-gray-500 mb-4">{t('config.timezone_settings_desc')}</p>
+
                                         <div className="border rounded-md p-4">
                                             <div className="flex justify-between items-center">
                                                 <div>
                                                     <label className="text-xs font-medium leading-6">{t(`config.customOffset`)}</label>
-                                                    <p className="text-xs text-gray-500">
-                                                        {t('config.customOffset_desc')}
-                                                    </p>
+                                                    <p className="text-xs text-gray-500">{t('config.customOffset_desc')}</p>
                                                 </div>
                                                 <Toggle
                                                     enabled={isNotEmpty(displayOffset)}
@@ -624,7 +603,7 @@ const VisualConfigPanel: React.FC = () => {
                                                     }}
                                                 />
                                             </div>
-                                            
+
                                             {isNotEmpty(displayOffset) && (
                                                 <Combobox
                                                     className="mt-4 max-w-md"
@@ -652,6 +631,8 @@ const VisualConfigPanel: React.FC = () => {
                             onClick={() => {
                                 vizStore.setShowVisualConfigPanel(false);
                             }}
+                            data-testid="visual-config-cancel-button"
+                            aria-label="Cancel visual configuration"
                         >
                             {t('actions.cancel')}
                         </Button>
@@ -695,13 +676,15 @@ const VisualConfigPanel: React.FC = () => {
                                                   ] as KVTuple<IVisualLayout>,
                                               ]
                                             : []),
-                                        ['geoMapTileUrl', geoMapTileUrl]
+                                        ['geoMapTileUrl', geoMapTileUrl],
                                     );
                                     displayOffsetEdited && vizStore.setVisualConfig('timezoneDisplayOffset', displayOffset);
                                     setVizThemeConfig?.(themeKey);
                                     vizStore.setShowVisualConfigPanel(false);
                                 });
                             }}
+                            data-testid="visual-config-confirm-button"
+                            aria-label="Apply visual configuration"
                         >
                             {t('actions.confirm')}
                         </Button>

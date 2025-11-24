@@ -11,7 +11,7 @@ export interface ToolbarSelectButtonItem<T extends string = string> extends IToo
             props: React.SVGProps<SVGSVGElement> & {
                 title?: string | undefined;
                 titleId?: string | undefined;
-            }
+            },
         ) => JSX.Element;
         label: string;
         /** @default false */
@@ -48,12 +48,18 @@ const ToolbarSelectButton = memo<IToolbarProps<ToolbarSelectButtonItem>>(functio
                     </Button>
                 </DropdownMenuTrigger>
             </ToolbarItemContainer>
-            <DropdownMenuContent onCloseAutoFocus={e => e.preventDefault()}>
+            <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
                 <DropdownMenuRadioGroup value={value} onValueChange={onSelect}>
                     {options.map((option) => {
                         const OptionIcon = option.icon;
                         return (
-                            <DropdownMenuRadioItem key={option.key} value={option.key} className="gap-2">
+                            <DropdownMenuRadioItem
+                                key={option.key}
+                                value={option.key}
+                                className="gap-2"
+                                data-testid={key === 'mark_type' ? `chart-type-${option.key}` : `${key}-option-${option.key}`}
+                                aria-label={option.label}
+                            >
                                 <OptionIcon className="w-[18px] h-[18px]" />
                                 {option.label}
                             </DropdownMenuRadioItem>

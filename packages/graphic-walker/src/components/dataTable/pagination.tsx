@@ -71,7 +71,7 @@ export default function Pagination(props: PaginationProps) {
     const { t } = useTranslation();
     const showIndices: IPageItem[] = useMemo<IPageItem[]>(
         () => getShowIndices(total, pageIndex, pageSize, extendPageNumber),
-        [pageIndex, pageSize, extendPageNumber, total, pageIndex]
+        [pageIndex, pageSize, extendPageNumber, total, pageIndex],
     );
 
     const pageButton = (index: number) => {
@@ -79,11 +79,14 @@ export default function Pagination(props: PaginationProps) {
             <PaginationItem key={index}>
                 <PaginationLink
                     size="default"
-                    className='px-3 min-w-[2.25rem]'
+                    className="px-3 min-w-[2.25rem]"
                     isActive={index === pageIndex}
                     onClick={() => {
                         onPageChange && onPageChange(index);
                     }}
+                    data-testid={`data-pagination-page-${index}`}
+                    aria-label={`Go to page ${index + 1}`}
+                    aria-current={index === pageIndex ? 'page' : undefined}
                 >
                     {index + 1}
                 </PaginationLink>
@@ -99,6 +102,8 @@ export default function Pagination(props: PaginationProps) {
                         onClick={() => {
                             onPrev();
                         }}
+                        data-testid="data-pagination-prev"
+                        aria-label="Previous page"
                     >
                         {t('actions.prev')}
                     </PaginationPrevious>
@@ -106,7 +111,7 @@ export default function Pagination(props: PaginationProps) {
                 {showIndices.map((x) => {
                     if (x.type === 'placeholder') {
                         return (
-                            <PaginationItem key={x.index}>
+                            <PaginationItem key={x.index} data-testid={`data-pagination-ellipsis`}>
                                 <PaginationEllipsis />
                             </PaginationItem>
                         );
@@ -118,6 +123,8 @@ export default function Pagination(props: PaginationProps) {
                         onClick={() => {
                             onNext();
                         }}
+                        data-testid="data-pagination-next"
+                        aria-label="Next page"
                     >
                         {t('actions.next')}
                     </PaginationNext>

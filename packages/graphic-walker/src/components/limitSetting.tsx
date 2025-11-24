@@ -5,7 +5,7 @@ import { Checkbox } from './ui/checkbox';
 import { Input } from './ui/input';
 import debounce from 'lodash-es/debounce';
 
-const useDebounceValueBind  = createStreamedValueBindHook((f) => debounce(f, 600));
+const useDebounceValueBind = createStreamedValueBindHook((f) => debounce(f, 600));
 const default_limit_value = 100;
 
 export default function LimitSetting(props: { value: number; setValue: (v: number) => void }) {
@@ -17,16 +17,18 @@ export default function LimitSetting(props: { value: number; setValue: (v: numbe
     return (
         <div className="w-60 mt-2 p-2">
             <Input
-                className='h-8'
-                type='number'
+                className="h-8"
+                type="number"
                 min={0}
                 step={10}
                 value={inputValue}
                 disabled={!enable}
                 onChange={(e) => {
-                    setInnerValue(parseInt(e.target.value))
-                    setInputValue(parseInt(e.target.value))
+                    setInnerValue(parseInt(e.target.value));
+                    setInputValue(parseInt(e.target.value));
                 }}
+                data-testid="limit-input"
+                aria-label={`Limit value: ${inputValue}`}
             />
             <div className="ml-1 mt-3 flex items-center">
                 <Checkbox
@@ -36,8 +38,10 @@ export default function LimitSetting(props: { value: number; setValue: (v: numbe
                         setEnable(!!v);
                         v ? props.setValue(inputValue) : props.setValue(0);
                     }}
+                    data-testid="limit-checkbox"
+                    aria-label={`Enable limit: ${enable ? 'enabled' : 'disabled'}`}
                 ></Checkbox>
-                { t('limit') }
+                {t('limit')}
             </div>
         </div>
     );

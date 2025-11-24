@@ -33,6 +33,8 @@ export const ResizeDialog: React.FC<SizeSettingProps> = (props) => {
                     className="w-full"
                     onValueChange={([v]) => setInnerWidth(Math.round(v ** 2 * 1000))}
                     value={sliderWidthValue}
+                    data-testid="resize-width-slider"
+                    aria-label={`${t('width')}: ${innerWidth}`}
                 />
                 <div className="ml-1 mt-1 text-xs">{`${t('width')}: ${innerWidth}`}</div>
             </div>
@@ -45,6 +47,8 @@ export const ResizeDialog: React.FC<SizeSettingProps> = (props) => {
                     className="w-full"
                     onValueChange={([v]) => setInnerHeight(Math.round(v ** 2 * 1000))}
                     value={sliderHeightValue}
+                    data-testid="resize-height-slider"
+                    aria-label={`${t('height')}: ${innerHeight}`}
                 />
                 <div className="ml-1 mt-1 text-xs"> {`${t('height')}: ${innerHeight}`}</div>
             </div>

@@ -18,17 +18,31 @@ export function ToolbarItemContainer(props: { children: React.ReactNode | Iterab
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <PopoverTrigger asChild>
-                            <div className="m-0.5 rounded-md flex transition-colors hover:bg-muted hover:text-muted-foreground" style={styles?.item}>
+                            <div
+                                className="m-0.5 rounded-md flex transition-colors hover:bg-muted hover:text-muted-foreground"
+                                style={styles?.item}
+                                data-testid={form ? `toolbar-${key}-trigger` : undefined}
+                            >
                                 <div onClick={splitOnly ? undefined : (e) => e.stopPropagation()}>{children}</div>
                                 {form && (
-                                    <Button variant="none" size="none" className="cursor-pointer group flex items-center h-8 mr-1">
+                                    <Button
+                                        variant="none"
+                                        size="none"
+                                        className="cursor-pointer group flex items-center h-8 mr-1"
+                                        data-testid={`toolbar-${key}-form-toggle`}
+                                        aria-label={`Open ${label} settings`}
+                                    >
                                         <Cog6ToothIcon style={styles?.splitIcon} className="group-hover:translate-y-[40%] transition-transform w-2.5 h-2.5" />
                                     </Button>
                                 )}
                             </div>
                         </PopoverTrigger>
                     </TooltipTrigger>
-                    {form && <PopoverContent className="p-0 w-fit">{form}</PopoverContent>}
+                    {form && (
+                        <PopoverContent className="p-0 w-fit" data-testid={`toolbar-${key}-form`}>
+                            {form}
+                        </PopoverContent>
+                    )}
                     <TooltipContent hideWhenDetached>{label}</TooltipContent>
                 </Tooltip>
             </TooltipProvider>

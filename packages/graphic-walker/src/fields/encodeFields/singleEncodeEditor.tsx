@@ -50,20 +50,33 @@ const SingleEncodeEditor: React.FC<SingleEncodeEditorProps> = (props) => {
     }, [allFields]);
 
     return (
-        <div className="p-1 select-none relative touch-none" {...provided.droppableProps} ref={refMapper(provided.innerRef)}>
+        <div
+            className="p-1 select-none relative touch-none"
+            data-testid={`shelf-${dkey.id}`}
+            aria-label={`${dkey.id} encoding shelf`}
+            role="region"
+            {...provided.droppableProps}
+            ref={refMapper(provided.innerRef)}
+        >
             <div
                 className={`p-1.5 bg-muted text-muted-foreground border flex item-center justify-center grow ${
                     snapshot.draggingFromThisWith || snapshot.isDraggingOver || !channelItem ? 'opacity-100' : 'opacity-0'
                 } relative z-0`}
+                aria-hidden={channelItem ? 'true' : 'false'}
             >
                 {t('actions.drop_field')}
             </div>
             {channelItem && (
                 <Draggable draggableId={`encode_${dkey.id}_${getFieldIdentifier(channelItem)}`} index={0}>
                     {(provided, snapshot) => {
+                        const fieldId = getFieldIdentifier(channelItem);
                         return (
                             <div
                                 ref={refMapper(provided.innerRef)}
+                                data-testid={`encode-${dkey.id}-${fieldId}`}
+                                aria-label={`${channelItem.name} in ${dkey.id} shelf`}
+                                role="button"
+                                tabIndex={0}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
                                 className={
@@ -77,6 +90,10 @@ const SingleEncodeEditor: React.FC<SingleEncodeEditorProps> = (props) => {
                                         vizStore.removeField(dkey.id, 0);
                                     }}
                                     className="grow-0 shrink-0 px-1.5 flex items-center justify-center bg-destructive text-destructive-foreground cursor-pointer"
+                                    role="button"
+                                    aria-label={`Remove ${channelItem.name} from ${dkey.id}`}
+                                    tabIndex={0}
+                                    data-testid={`remove-encode-${dkey.id}-${fieldId}`}
                                 >
                                     <TrashIcon className="w-4" />
                                 </div>
@@ -106,7 +123,12 @@ const SingleEncodeEditor: React.FC<SingleEncodeEditorProps> = (props) => {
                                                     vizStore.setFieldAggregator(dkey.id, 0, value as IAggregator);
                                                 }}
                                             >
-                                                <span className="bg-transparent text-muted-foreground float-right focus:outline-none focus: dark:focus: flex items-center ml-2">
+                                                <span
+                                                    className="bg-transparent text-muted-foreground float-right focus:outline-none focus: dark:focus: flex items-center ml-2"
+                                                    data-testid={`aggregation-${dkey.id}-${fieldId}`}
+                                                    aria-label={`Aggregation for ${channelItem.name}`}
+                                                    role="button"
+                                                >
                                                     {channelItem.aggName || ''}
                                                     <ChevronUpDownIcon className="w-3" />
                                                 </span>

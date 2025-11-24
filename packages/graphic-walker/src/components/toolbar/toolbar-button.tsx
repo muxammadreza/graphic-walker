@@ -15,12 +15,19 @@ const ToolbarButton = memo<IToolbarProps<ToolbarButtonItem>>(function ToolbarBut
     return (
         <ToolbarItemContainer {...props} splitOnly={!onClick}>
             {href && (
-                <a href={href} target="_blank" className={buttonVariants({ variant: 'none', size: 'toolbar' })} aria-disabled={disabled}>
+                <a
+                    href={href}
+                    target="_blank"
+                    className={buttonVariants({ variant: 'none', size: 'toolbar' })}
+                    aria-disabled={disabled}
+                    data-testid={`toolbar-${item.key}`}
+                    aria-label={item.label}
+                >
                     <Icon className="w-[18px] h-[18px]" style={styles?.icon} />
                 </a>
             )}
             {!href && (
-                <Button variant="none" size="toolbar" onClick={onClick} disabled={disabled}>
+                <Button variant="none" size="toolbar" onClick={onClick} disabled={disabled} data-testid={`toolbar-${item.key}`} aria-label={item.label}>
                     <Icon className="w-[18px] h-[18px]" style={styles?.icon} />
                 </Button>
             )}

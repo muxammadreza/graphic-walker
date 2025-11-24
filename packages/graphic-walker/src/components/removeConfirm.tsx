@@ -11,14 +11,16 @@ const RemoveConfirm = observer(function RemoveConfirm() {
     const viz = useVizStore();
     return (
         <Dialog onOpenChange={() => viz.closeRemoveConfirmModal()} open={viz.removeConfirmIdx !== null}>
-            <DialogContent>
-                <DialogHeader>{t('main.tablist.remove_confirm')}</DialogHeader>
+            <DialogContent data-testid="remove-confirm-dialog" aria-labelledby="remove-confirm-title" aria-describedby="remove-confirm-description">
+                <DialogHeader id="remove-confirm-title">{t('main.tablist.remove_confirm')}</DialogHeader>
                 <DialogFooter className="mt-4">
                     <Button
                         variant="outline"
                         onClick={() => {
                             viz.closeRemoveConfirmModal();
                         }}
+                        data-testid="remove-confirm-cancel"
+                        aria-label="Cancel removal"
                     >
                         {t('actions.cancel')}
                     </Button>
@@ -28,6 +30,8 @@ const RemoveConfirm = observer(function RemoveConfirm() {
                             viz.removeVisualization(viz.removeConfirmIdx!);
                             viz.closeRemoveConfirmModal();
                         }}
+                        data-testid="remove-confirm-delete"
+                        aria-label="Confirm removal"
                     >
                         {t('actions.confirm')}
                     </Button>

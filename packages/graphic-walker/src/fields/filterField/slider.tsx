@@ -89,7 +89,17 @@ const Slider: React.FC<SliderProps> = React.memo(function Slider({ min, max, val
 
     return (
         <SliderContainer>
-            <RangeSlider value={[value[0] ?? min, value[1] ?? max]} min={min} max={max} step={stepDigit} onValueChange={([min, max]) => onChange([min, max])} />
+            <RangeSlider
+                value={[value[0] ?? min, value[1] ?? max]}
+                min={min}
+                max={max}
+                step={stepDigit}
+                onValueChange={([minVal, maxVal]) => onChange([minVal, maxVal])}
+                data-testid="filter-range-slider"
+                aria-label={`Range: ${value[0] ?? min} to ${value[1] ?? max}`}
+                aria-valuemin={min}
+                aria-valuemax={max}
+            />
             <div className="output">
                 <output htmlFor="slider:min">
                     <div className="my-1">{t('filters.range.start_value')}</div>

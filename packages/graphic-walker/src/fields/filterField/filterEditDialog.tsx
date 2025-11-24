@@ -17,7 +17,7 @@ const aggregationList = GLOBAL_CONFIG.AGGREGATOR_LIST.map(
     (x): IDropdownSelectOption => ({
         label: x,
         value: x,
-    })
+    }),
 ).concat([{ label: '-', value: '_none' }]);
 
 const QuantitativeRuleForm: React.FC<RuleFormProps> = ({ allFields, field, onChange, displayOffset }) => {
@@ -64,11 +64,11 @@ export const PureFilterEditDialog = (props: {
                         ({
                             ...uf,
                             rule: r,
-                        } as IFilterField)
+                        }) as IFilterField,
                 );
             }
         },
-        [editingFilterIdx]
+        [editingFilterIdx],
     );
 
     const handleSubmit = React.useCallback(() => {
@@ -90,9 +90,9 @@ export const PureFilterEditDialog = (props: {
 
     return uncontrolledField ? (
         <Dialog open={Boolean(uncontrolledField)} onOpenChange={onClose}>
-            <DialogContent>
+            <DialogContent data-testid="filter-edit-dialog">
                 <DialogHeader>
-                    <DialogTitle>{t('editing')}</DialogTitle>
+                    <DialogTitle id="filter-dialog-title">{t('editing')}</DialogTitle>
                 </DialogHeader>
                 <div className="pt-4 text-xs">
                     <div className="grid grid-cols-2 gap-4">
@@ -104,6 +104,8 @@ export const PureFilterEditDialog = (props: {
                                 options={options}
                                 selectedKey={uncontrolledField.fid}
                                 onSelect={onSelectFilter}
+                                data-testid="filter-field-selector"
+                                aria-label="Select field to filter"
                             />
                         </div>
                         {onSelectAgg && editingFilterIdx !== null && uncontrolledField.analyticType === 'measure' && (
@@ -113,8 +115,10 @@ export const PureFilterEditDialog = (props: {
                                     buttonClassName="w-96"
                                     className="mb-2"
                                     options={aggregationList}
-                                    selectedKey={uncontrolledField.enableAgg ? uncontrolledField.aggName ?? '' : ''}
+                                    selectedKey={uncontrolledField.enableAgg ? (uncontrolledField.aggName ?? '') : ''}
                                     onSelect={(v) => onSelectAgg(editingFilterIdx, v === '' ? null : (v as IAggregator))}
+                                    data-testid="filter-aggregation-selector"
+                                    aria-label="Select aggregation method"
                                 />
                             </div>
                         )}
@@ -127,8 +131,14 @@ export const PureFilterEditDialog = (props: {
                         displayOffset={props.displayOffset}
                     />
                     <DialogFooter>
-                        <Button onClick={handleSubmit} children={t('btn.confirm')} />
-                        <Button variant="outline" onClick={onClose} children={t('btn.cancel')} />
+                        <Button onClick={handleSubmit} children={t('btn.confirm')} data-testid="filter-confirm-btn" aria-label="Apply filter changes" />
+                        <Button
+                            variant="outline"
+                            onClick={onClose}
+                            children={t('btn.cancel')}
+                            data-testid="filter-cancel-btn"
+                            aria-label="Cancel filter editing"
+                        />
                     </DialogFooter>
                 </div>
             </DialogContent>
@@ -163,7 +173,7 @@ const FilterEditDialog: React.FC = observer(() => {
                 'none',
                 [],
                 undefined,
-                timezoneDisplayOffset
+                timezoneDisplayOffset,
             ).map((x) => {
                 if (x.type === 'view') {
                     return {
@@ -196,7 +206,7 @@ const FilterEditDialog: React.FC = observer(() => {
                 vizStore.writeFilter(index, rule ?? null);
             }
         },
-        [vizStore]
+        [vizStore],
     );
 
     const handleSelectFilterField = (fieldKey) => {

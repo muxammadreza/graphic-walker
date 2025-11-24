@@ -71,13 +71,26 @@ const FilterPill: React.FC<FilterPillProps> = observer((props) => {
     const fieldName = field.enableAgg ? `${field.aggName}(${field.name})` : field.name;
 
     return (
-        <Pill className="text-foreground touch-none" ref={refMapper(provided.innerRef)} {...provided.draggableProps} {...provided.dragHandleProps}>
-            <header className="bg-secondary">{fieldName}</header>
+        <Pill
+            className="text-foreground touch-none"
+            ref={refMapper(provided.innerRef)}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            data-testid={`filter-${fIndex}-${field.fid}`}
+            aria-label={`Filter: ${fieldName}`}
+            role="button"
+            tabIndex={0}
+        >
+            <header className="bg-secondary" data-testid={`filter-${fIndex}-header`}>
+                {fieldName}
+            </header>
             <div
                 className="bg-background  text-muted-foreground hover:bg-accent flex flex-row output"
                 onClick={() => vizStore.setFilterEditing(fIndex)}
                 style={{ cursor: 'pointer' }}
                 title={t('to_edit')}
+                data-testid={`filter-${fIndex}-rule`}
+                aria-label={`Edit filter for ${fieldName}`}
             >
                 {field.rule ? (
                     <span className="flex-1">

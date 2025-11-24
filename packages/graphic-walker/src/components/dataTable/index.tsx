@@ -1,6 +1,16 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle, ForwardedRef } from 'react';
 import styled from 'styled-components';
-import type { IMutField, IRow, IComputationFunction, IFilterFiledSimple, IFilterRule, IFilterField, IFilterWorkflowStep, IField, IVisFilter } from '../../interfaces';
+import type {
+    IMutField,
+    IRow,
+    IComputationFunction,
+    IFilterFiledSimple,
+    IFilterRule,
+    IFilterField,
+    IFilterWorkflowStep,
+    IField,
+    IVisFilter,
+} from '../../interfaces';
 import { useTranslation } from 'react-i18next';
 import LoadingLayer from '../loadingLayer';
 import { dataReadRaw } from '../../computation';
@@ -158,7 +168,7 @@ function useFilters(metas: IMutField[]) {
                 }
             }
         },
-        [metas, filters, editingFilterIdx]
+        [metas, filters, editingFilterIdx],
     );
     const onWriteFilter = useCallback((index: number, rule: IFilterRule | null) => {
         setFilters((f) => f.map((x, i) => (i === index ? { ...x, rule } : x)));
@@ -239,336 +249,351 @@ const DataTable = forwardRef(
         props: DataTableProps,
         ref: ForwardedRef<{
             getFilters: () => IVisFilter[];
-        }>
+        }>,
     ) => {
-    const {
-        size = 10,
-        onMetaChange,
-        metas,
-        computation,
-        disableFilter,
-        disableSorting,
-        hideSemanticType,
-        displayOffset,
-        hidePaginationAtOnepage,
-        hideProfiling,
-    } = props;
-    const [pageIndex, setPageIndex] = useState(0);
-    const { t } = useTranslation();
-    const computationFunction = computation;
+        const {
+            size = 10,
+            onMetaChange,
+            metas,
+            computation,
+            disableFilter,
+            disableSorting,
+            hideSemanticType,
+            displayOffset,
+            hidePaginationAtOnepage,
+            hideProfiling,
+        } = props;
+        const [pageIndex, setPageIndex] = useState(0);
+        const { t } = useTranslation();
+        const computationFunction = computation;
 
-    const semanticTypeList = useMemo<{ value: string; label: string }[]>(() => {
-        return SEMANTIC_TYPE_LIST.map((st) => ({
-            value: st,
-            label: t(`constant.semantic_type.${st}`),
+        const semanticTypeList = useMemo<{ value: string; label: string }[]>(() => {
+            return SEMANTIC_TYPE_LIST.map((st) => ({
+                value: st,
+                label: t(`constant.semantic_type.${st}`),
+            }));
+        }, []);
+
+        const [rows, setRows] = useState<IRow[]>([]);
+        const [dataLoading, setDataLoading] = useState(false);
+        const taskIdRef = useRef(0);
+
+        const [sorting, setSorting] = useState<{ fid: string; sort: 'ascending' | 'descending' } | undefined>();
+
+        const { filters, editingFilterIdx, onClose, onDeleteFilter, onSelectFilter, onWriteFilter, options } = useFilters(metas);
+
+        const filtersRef = useRef(filters);
+        filtersRef.current = filters;
+
+        useImperativeHandle(ref, () => ({
+            getFilters: () => filtersRef.current.filter((x) => x.rule) as IVisFilter[],
         }));
-    }, []);
 
-    const [rows, setRows] = useState<IRow[]>([]);
-    const [dataLoading, setDataLoading] = useState(false);
-    const taskIdRef = useRef(0);
+        const [total, setTotal] = useState(0);
+        const [statLoading, setStatLoading] = useState(false);
 
-    const [sorting, setSorting] = useState<{ fid: string; sort: 'ascending' | 'descending' } | undefined>();
+        // Get count when filter changed
+        useEffect(() => {
+            const f = filters.filter((x) => x.rule).map((x) => ({ ...x, rule: x.rule }));
+            setStatLoading(true);
+            computation({
+                workflow: [
+                    ...(!disableFilter && f && f.length > 0
+                        ? [
+                              {
+                                  type: 'filter',
+                                  filters: f,
+                              } as IFilterWorkflowStep,
+                          ]
+                        : []),
+                    {
+                        type: 'view',
+                        query: [
+                            {
+                                op: 'aggregate',
+                                groupBy: [],
+                                measures: [
+                                    {
+                                        field: '*',
+                                        agg: 'count',
+                                        asFieldKey: 'count',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            }).then((v) => {
+                setTotal(v[0]?.count ?? 0);
+                setStatLoading(false);
+            });
+        }, [disableFilter, filters, computation]);
 
-    const { filters, editingFilterIdx, onClose, onDeleteFilter, onSelectFilter, onWriteFilter, options } = useFilters(metas);
+        const from = pageIndex * size;
+        const to = Math.min((pageIndex + 1) * size - 1, total - 1);
 
-    const filtersRef = useRef(filters);
-    filtersRef.current = filters;
+        useEffect(() => {
+            if (from > total) {
+                setPageIndex(0);
+            }
+        }, [from, total]);
 
-    useImperativeHandle(ref, () => ({
-        getFilters: () => filtersRef.current.filter(x => x.rule) as IVisFilter[],
-    }));
-
-    const [total, setTotal] = useState(0);
-    const [statLoading, setStatLoading] = useState(false);
-
-    // Get count when filter changed
-    useEffect(() => {
-        const f = filters.filter((x) => x.rule).map((x) => ({ ...x, rule: x.rule }));
-        setStatLoading(true);
-        computation({
-            workflow: [
-                ...(!disableFilter && f && f.length > 0
-                    ? [
-                          {
-                              type: 'filter',
-                              filters: f,
-                          } as IFilterWorkflowStep,
-                      ]
-                    : []),
-                {
-                    type: 'view',
-                    query: [
-                        {
-                            op: 'aggregate',
-                            groupBy: [],
-                            measures: [
-                                {
-                                    field: '*',
-                                    agg: 'count',
-                                    asFieldKey: 'count',
-                                },
-                            ],
-                        },
-                    ],
-                },
-            ],
-        }).then((v) => {
-            setTotal(v[0]?.count ?? 0);
-            setStatLoading(false);
-        });
-    }, [disableFilter, filters, computation]);
-
-    const from = pageIndex * size;
-    const to = Math.min((pageIndex + 1) * size - 1, total - 1);
-
-    useEffect(() => {
-        if (from > total) {
-            setPageIndex(0);
-        }
-    }, [from, total]);
-
-    useEffect(() => {
-        setDataLoading(true);
-        const taskId = ++taskIdRef.current;
-        dataReadRaw(computationFunction, size, pageIndex, {
-            sorting: disableSorting ? undefined : sorting,
-            filters: filters.filter((x) => x.rule).map((x) => ({ ...x, rule: x.rule! })),
-        })
-            .then((data) => {
-                if (taskId === taskIdRef.current) {
-                    setDataLoading(false);
-                    setRows(data);
-                }
+        useEffect(() => {
+            setDataLoading(true);
+            const taskId = ++taskIdRef.current;
+            dataReadRaw(computationFunction, size, pageIndex, {
+                sorting: disableSorting ? undefined : sorting,
+                filters: filters.filter((x) => x.rule).map((x) => ({ ...x, rule: x.rule! })),
             })
-            .catch((err) => {
-                if (taskId === taskIdRef.current) {
-                    console.error(err);
-                    setDataLoading(false);
-                    setRows([]);
-                }
-            });
-        return () => {
-            taskIdRef.current++;
-        };
-    }, [computationFunction, pageIndex, size, sorting, filters, disableSorting]);
-
-    const filteredComputation = useMemo((): IComputationFunction => {
-        const filterRules = filters.filter((f) => f.rule).map(createFilter);
-        return (query) => computation(addFilterForQuery(query, filterRules));
-    }, [computation, filters]);
-
-    const loading = statLoading || dataLoading;
-
-    const headers = useMemo(() => getHeaders(metas), [metas]);
-
-    const [isSticky, setIsSticky] = useState(false);
-
-    const obRef = useRef<IntersectionObserver>();
-    const stickyDector = useCallback((node: HTMLDivElement) => {
-        obRef.current?.disconnect();
-        if (node) {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach((entry) => {
-                    setIsSticky(!entry.isIntersecting);
+                .then((data) => {
+                    if (taskId === taskIdRef.current) {
+                        setDataLoading(false);
+                        setRows(data);
+                    }
+                })
+                .catch((err) => {
+                    if (taskId === taskIdRef.current) {
+                        console.error(err);
+                        setDataLoading(false);
+                        setRows([]);
+                    }
                 });
-            });
-            observer.observe(node);
-            obRef.current = observer;
-        }
-    }, []);
-    return (
-        <Container className="relative">
-            {!disableFilter && filters.length > 0 && (
-                <div className="flex items-center p-2 space-x-2">
-                    <span>Filters: </span>
-                    {filters.map((x, i) => (
-                        <FilterPill key={x.fid} name={x.name} onClick={() => onSelectFilter(x.fid)} onRemove={() => onDeleteFilter(i)} />
-                    ))}
-                </div>
-            )}
-            {!(hidePaginationAtOnepage && total <= size) && (
-                <nav className="flex items-center justify-end space-x-2 p-2" aria-label="Pagination">
-                    <div className="hidden sm:block flex-1">
-                        <p className="text-sm text-muted-foreground">
-                            Showing <span className="font-medium">{from + 1}</span> to <span className="font-medium">{to + 1}</span> of{' '}
-                            <span className="font-medium">{total}</span> results
-                        </p>
+            return () => {
+                taskIdRef.current++;
+            };
+        }, [computationFunction, pageIndex, size, sorting, filters, disableSorting]);
+
+        const filteredComputation = useMemo((): IComputationFunction => {
+            const filterRules = filters.filter((f) => f.rule).map(createFilter);
+            return (query) => computation(addFilterForQuery(query, filterRules));
+        }, [computation, filters]);
+
+        const loading = statLoading || dataLoading;
+
+        const headers = useMemo(() => getHeaders(metas), [metas]);
+
+        const [isSticky, setIsSticky] = useState(false);
+
+        const obRef = useRef<IntersectionObserver>();
+        const stickyDector = useCallback((node: HTMLDivElement) => {
+            obRef.current?.disconnect();
+            if (node) {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach((entry) => {
+                        setIsSticky(!entry.isIntersecting);
+                    });
+                });
+                observer.observe(node);
+                obRef.current = observer;
+            }
+        }, []);
+        return (
+            <Container className="relative">
+                {!disableFilter && filters.length > 0 && (
+                    <div className="flex items-center p-2 space-x-2">
+                        <span>Filters: </span>
+                        {filters.map((x, i) => (
+                            <FilterPill key={x.fid} name={x.name} onClick={() => onSelectFilter(x.fid)} onRemove={() => onDeleteFilter(i)} />
+                        ))}
                     </div>
-                    <div className="space-x-2">
-                        <Pagination
-                            total={total}
-                            pageSize={size}
-                            pageIndex={pageIndex}
-                            onNext={() => {
-                                setPageIndex(Math.min(Math.ceil(total / size) - 1, pageIndex + 1));
-                            }}
-                            onPrev={() => {
-                                setPageIndex(Math.max(0, pageIndex - 1));
-                            }}
-                            onPageChange={(index) => {
-                                setPageIndex(Math.max(0, Math.min(Math.ceil(total / size) - 1, index)));
-                            }}
-                        />
-                    </div>
-                </nav>
-            )}
-            <div className="overflow-y-auto h-full" style={{ maxHeight: '600px' }}>
-                <div className="h-0 w-full" ref={stickyDector}></div>
-                <table className="min-w-full relative border-x">
-                    <thead className={`sticky top-0 bg-background ${isSticky ? 'shadow-md' : ''}`}>
-                        {headers.map((row) => (
-                            <tr className="divide-x divide-border" key={`row_${getHeaderKey(row[0])}`}>
-                                {row.map((f, i) => (
-                                    <th
-                                        colSpan={f.colSpan}
-                                        rowSpan={f.rowSpan}
-                                        key={getHeaderKey(f)}
-                                        className="align-top p-0 border-b bg-background"
-                                        style={{ zIndex: row.length - i }}
-                                    >
-                                        {f.type === 'name' && (
-                                            <div
-                                                className={
-                                                    'inset-x-0 border-t-4 border-yellow-400 whitespace-nowrap py-3.5 text-left text-xs font-medium text-foreground'
-                                                }
-                                            >
-                                                <b className="sticky inset-x-0 w-fit px-4 sm:pl-6">{f.value}</b>
-                                            </div>
-                                        )}
-                                        {f.type === 'field' && (
-                                            <div
-                                                className={
-                                                    getHeaderClassNames(f.value) +
-                                                    ' whitespace-nowrap py-3.5 px-4 text-left text-xs font-medium text-foreground flex items-center gap-1 group'
-                                                }
-                                            >
-                                                <div className="font-normal block">
-                                                    {!hideSemanticType && !onMetaChange && (
-                                                        <span className={'inline-flex p-0.5 text-xs mt-1 rounded ' + getSemanticColors(f.value)}>
-                                                            <DataTypeIcon dataType={f.value.semanticType} analyticType={f.value.analyticType} />
-                                                        </span>
-                                                    )}
-                                                    {!hideSemanticType && onMetaChange && (
-                                                        <DropdownContext
-                                                            options={semanticTypeList}
-                                                            onSelect={(value) => {
-                                                                onMetaChange(f.value.fid, f.fIndex, {
-                                                                    semanticType: value as IMutField['semanticType'],
-                                                                });
-                                                            }}
-                                                        >
-                                                            <span
-                                                                className={
-                                                                    'cursor-pointer inline-flex p-0.5 text-xs mt-1 rounded hover:scale-125 ' +
-                                                                    getSemanticColors(f.value)
-                                                                }
-                                                            >
+                )}
+                {!(hidePaginationAtOnepage && total <= size) && (
+                    <nav
+                        className="flex items-center justify-end space-x-2 p-2"
+                        aria-label="Pagination"
+                        data-testid="data-pagination-container"
+                        role="navigation"
+                    >
+                        <div className="hidden sm:block flex-1">
+                            <p className="text-sm text-muted-foreground" data-testid="data-pagination-info" aria-live="polite">
+                                Showing <span className="font-medium">{from + 1}</span> to <span className="font-medium">{to + 1}</span> of{' '}
+                                <span className="font-medium">{total}</span> results
+                            </p>
+                        </div>
+                        <div className="space-x-2">
+                            <Pagination
+                                total={total}
+                                pageSize={size}
+                                pageIndex={pageIndex}
+                                onNext={() => {
+                                    setPageIndex(Math.min(Math.ceil(total / size) - 1, pageIndex + 1));
+                                }}
+                                onPrev={() => {
+                                    setPageIndex(Math.max(0, pageIndex - 1));
+                                }}
+                                onPageChange={(index) => {
+                                    setPageIndex(Math.max(0, Math.min(Math.ceil(total / size) - 1, index)));
+                                }}
+                            />
+                        </div>
+                    </nav>
+                )}
+                <div className="overflow-y-auto h-full" style={{ maxHeight: '600px' }} data-testid="data-table-container" role="region" aria-label="Data table">
+                    <div className="h-0 w-full" ref={stickyDector}></div>
+                    <table className="min-w-full relative border-x">
+                        <thead className={`sticky top-0 bg-background ${isSticky ? 'shadow-md' : ''}`}>
+                            {headers.map((row) => (
+                                <tr className="divide-x divide-border" key={`row_${getHeaderKey(row[0])}`}>
+                                    {row.map((f, i) => (
+                                        <th
+                                            colSpan={f.colSpan}
+                                            rowSpan={f.rowSpan}
+                                            key={getHeaderKey(f)}
+                                            className="align-top p-0 border-b bg-background"
+                                            style={{ zIndex: row.length - i }}
+                                        >
+                                            {f.type === 'name' && (
+                                                <div
+                                                    className={
+                                                        'inset-x-0 border-t-4 border-yellow-400 whitespace-nowrap py-3.5 text-left text-xs font-medium text-foreground'
+                                                    }
+                                                >
+                                                    <b className="sticky inset-x-0 w-fit px-4 sm:pl-6">{f.value}</b>
+                                                </div>
+                                            )}
+                                            {f.type === 'field' && (
+                                                <div
+                                                    className={
+                                                        getHeaderClassNames(f.value) +
+                                                        ' whitespace-nowrap py-3.5 px-4 text-left text-xs font-medium text-foreground flex items-center gap-1 group'
+                                                    }
+                                                >
+                                                    <div className="font-normal block">
+                                                        {!hideSemanticType && !onMetaChange && (
+                                                            <span className={'inline-flex p-0.5 text-xs mt-1 rounded ' + getSemanticColors(f.value)}>
                                                                 <DataTypeIcon dataType={f.value.semanticType} analyticType={f.value.analyticType} />
                                                             </span>
-                                                        </DropdownContext>
-                                                    )}
-                                                </div>
-                                                <b
-                                                    className="inline-block"
-                                                    onClick={() => {
-                                                        if (disableSorting) return;
-                                                        setSorting((s) => {
-                                                            if (s?.fid === f.value.fid && s.sort === 'descending') {
+                                                        )}
+                                                        {!hideSemanticType && onMetaChange && (
+                                                            <DropdownContext
+                                                                options={semanticTypeList}
+                                                                onSelect={(value) => {
+                                                                    onMetaChange(f.value.fid, f.fIndex, {
+                                                                        semanticType: value as IMutField['semanticType'],
+                                                                    });
+                                                                }}
+                                                            >
+                                                                <span
+                                                                    className={
+                                                                        'cursor-pointer inline-flex p-0.5 text-xs mt-1 rounded hover:scale-125 ' +
+                                                                        getSemanticColors(f.value)
+                                                                    }
+                                                                >
+                                                                    <DataTypeIcon dataType={f.value.semanticType} analyticType={f.value.analyticType} />
+                                                                </span>
+                                                            </DropdownContext>
+                                                        )}
+                                                    </div>
+                                                    <b
+                                                        className="inline-block cursor-pointer"
+                                                        onClick={() => {
+                                                            if (disableSorting) return;
+                                                            setSorting((s) => {
+                                                                if (s?.fid === f.value.fid && s.sort === 'descending') {
+                                                                    return {
+                                                                        fid: f.value.fid,
+                                                                        sort: 'ascending',
+                                                                    };
+                                                                }
                                                                 return {
                                                                     fid: f.value.fid,
-                                                                    sort: 'ascending',
+                                                                    sort: 'descending',
                                                                 };
-                                                            }
-                                                            return {
-                                                                fid: f.value.fid,
-                                                                sort: 'descending',
-                                                            };
-                                                        });
-                                                    }}
-                                                >
-                                                    {f.value.basename || f.value.name || f.value.fid}
-                                                </b>
-                                                {!disableSorting && sorting?.fid === f.value.fid && (
-                                                    <div className="mx-1">
-                                                        {sorting.sort === 'ascending' && <BarsArrowUpIcon className="w-3" />}
-                                                        {sorting.sort === 'descending' && <BarsArrowDownIcon className="w-3" />}
-                                                    </div>
-                                                )}
-                                                {!disableFilter && (
-                                                    <div
-                                                        className={buttonVariants({
-                                                            variant: 'ghost',
-                                                            className: 'cursor-pointer invisible group-hover:visible',
-                                                            size: 'icon-sm',
-                                                        })}
-                                                        onClick={() => onSelectFilter(f.value.fid)}
+                                                            });
+                                                        }}
+                                                        data-testid={`data-column-${f.value.fid}`}
+                                                        aria-label={`Sort by ${f.value.basename || f.value.name || f.value.fid}`}
+                                                        aria-sort={
+                                                            sorting?.fid === f.value.fid ? (sorting.sort === 'ascending' ? 'ascending' : 'descending') : 'none'
+                                                        }
+                                                        role="button"
+                                                        tabIndex={0}
                                                     >
-                                                        <FunnelIcon className="w-4 inline-block" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </th>
-                                ))}
-                            </tr>
-                        ))}
-                        {!props.hideProfiling && (
-                            <tr className="divide-x divide-border border-b">
-                                {metas.map((field) => (
-                                    <th key={field.fid} className={getHeaderType(field) + ' whitespace-nowrap py-2 px-3 text-xs text-muted-foreground'}>
-                                        <FieldProfiling
-                                            field={field.fid}
-                                            semanticType={field.semanticType}
-                                            computation={filteredComputation}
-                                            displayOffset={displayOffset}
-                                            offset={field.offset}
-                                        />
-                                    </th>
-                                ))}
-                            </tr>
-                        )}
-                    </thead>
-                    <tbody className="divide-y divide-border bg-background font-mono">
-                        {rows.map((row, index) => (
-                            <tr className="divide-x divide-border" key={index}>
-                                {metas.map((field) => {
-                                    const value = fieldValue({ field, item: row, displayOffset });
-                                    return (
-                                        <td
-                                            key={field.fid + index}
-                                            className={getHeaderType(field) + ' whitespace-nowrap py-2 px-4 text-xs text-muted-foreground max-w-[240px]'}
-                                        >
-                                            <TruncateDector value={value} />
-                                        </td>
-                                    );
-                                })}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                                                        {f.value.basename || f.value.name || f.value.fid}
+                                                    </b>
+                                                    {!disableSorting && sorting?.fid === f.value.fid && (
+                                                        <div className="mx-1" data-testid={`data-sort-indicator-${f.value.fid}`} aria-hidden="true">
+                                                            {sorting.sort === 'ascending' && <BarsArrowUpIcon className="w-3" />}
+                                                            {sorting.sort === 'descending' && <BarsArrowDownIcon className="w-3" />}
+                                                        </div>
+                                                    )}
+                                                    {!disableFilter && (
+                                                        <div
+                                                            className={buttonVariants({
+                                                                variant: 'ghost',
+                                                                className: 'cursor-pointer invisible group-hover:visible',
+                                                                size: 'icon-sm',
+                                                            })}
+                                                            onClick={() => onSelectFilter(f.value.fid)}
+                                                        >
+                                                            <FunnelIcon className="w-4 inline-block" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </th>
+                                    ))}
+                                </tr>
+                            ))}
+                            {!props.hideProfiling && (
+                                <tr className="divide-x divide-border border-b">
+                                    {metas.map((field) => (
+                                        <th key={field.fid} className={getHeaderType(field) + ' whitespace-nowrap py-2 px-3 text-xs text-muted-foreground'}>
+                                            <FieldProfiling
+                                                field={field.fid}
+                                                semanticType={field.semanticType}
+                                                computation={filteredComputation}
+                                                displayOffset={displayOffset}
+                                                offset={field.offset}
+                                            />
+                                        </th>
+                                    ))}
+                                </tr>
+                            )}
+                        </thead>
+                        <tbody className="divide-y divide-border bg-background font-mono">
+                            {rows.map((row, index) => (
+                                <tr className="divide-x divide-border" key={index} data-testid={`data-row-${pageIndex * size + index}`} role="row">
+                                    {metas.map((field) => {
+                                        const value = fieldValue({ field, item: row, displayOffset });
+                                        return (
+                                            <td
+                                                key={field.fid + index}
+                                                className={getHeaderType(field) + ' whitespace-nowrap py-2 px-4 text-xs text-muted-foreground max-w-[240px]'}
+                                                data-testid={`data-cell-${pageIndex * size + index}-${field.fid}`}
+                                                role="cell"
+                                            >
+                                                <TruncateDector value={value} />
+                                            </td>
+                                        );
+                                    })}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
 
-            {loading && <LoadingLayer />}
-            {!disableFilter && (
-                <ComputationContext.Provider value={computation}>
-                    <div className="text-xs">
-                        <PureFilterEditDialog
-                            editingFilterIdx={editingFilterIdx}
-                            meta={metas}
-                            onClose={onClose}
-                            onSelectFilter={onSelectFilter}
-                            onWriteFilter={onWriteFilter}
-                            options={options}
-                            viewFilters={filters}
-                            displayOffset={displayOffset}
-                        />
-                    </div>
-                </ComputationContext.Provider>
-            )}
-        </Container>
-    );
-});
+                {loading && <LoadingLayer />}
+                {!disableFilter && (
+                    <ComputationContext.Provider value={computation}>
+                        <div className="text-xs">
+                            <PureFilterEditDialog
+                                editingFilterIdx={editingFilterIdx}
+                                meta={metas}
+                                onClose={onClose}
+                                onSelectFilter={onSelectFilter}
+                                onWriteFilter={onWriteFilter}
+                                options={options}
+                                viewFilters={filters}
+                                displayOffset={displayOffset}
+                            />
+                        </div>
+                    </ComputationContext.Provider>
+                )}
+            </Container>
+        );
+    },
+);
 
 export default DataTable;
 

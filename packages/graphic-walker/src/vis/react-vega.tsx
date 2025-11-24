@@ -6,6 +6,7 @@ import { expressionFunction, type ScenegraphEvent } from 'vega';
 import styled from 'styled-components';
 import { useVegaExportApi } from '../utils/vegaApiExport';
 import { IViewField, IRow, IStackMode, VegaGlobalConfig, IVegaChartRef, IChannelScales, IDarkMode, IConfigScaleSet, ISerpentineConfig } from '../interfaces';
+import { generateChartAriaLabel, generateFacetAriaLabel } from '../utils/chartAccessibility';
 import { getVegaTimeFormatRules } from './temporalFormat';
 import canvasSize from 'canvas-size';
 import { Errors, useReporter } from '../utils/reportError';
@@ -326,6 +327,17 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
                 }).then((res) => {
                     const container = res.view.container();
                     const canvas = container?.querySelector('canvas') ?? container?.querySelector('svg') ?? null;
+
+                    // Add test attributes to canvas/SVG after render
+                    if (canvas) {
+                        if (canvas instanceof HTMLCanvasElement) {
+                            canvas.setAttribute('data-testid', `chart-canvas-${geomType}`);
+                            canvas.setAttribute('aria-hidden', 'true');
+                        } else if (canvas instanceof SVGSVGElement) {
+                            canvas.setAttribute('data-testid', `chart-svg-${geomType}`);
+                            canvas.setAttribute('role', 'none');
+                        }
+                    }
                     const rect = canvas ? parseRect(canvas) : null;
                     startTask(() => {
                         const success =
@@ -426,6 +438,17 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
                         }).then((res) => {
                             const container = res.view.container();
                             const canvas = container?.querySelector('canvas') ?? container?.querySelector('svg') ?? null;
+
+                            // Add test attributes to canvas/SVG after render (faceted charts)
+                            if (canvas) {
+                                if (canvas instanceof HTMLCanvasElement) {
+                                    canvas.setAttribute('data-testid', `chart-canvas-${geomType}-${id}`);
+                                    canvas.setAttribute('aria-hidden', 'true');
+                                } else if (canvas instanceof SVGSVGElement) {
+                                    canvas.setAttribute('data-testid', `chart-svg-${geomType}-${id}`);
+                                    canvas.setAttribute('role', 'none');
+                                }
+                            }
                             const rect = canvas ? parseRect(canvas) : null;
                             startTask(() => {
                                 const success =
@@ -559,6 +582,17 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
         >
             <div ref={areaRef} className="inset-0 absolute" />
             <CanvaContainer
+                data-testid="chart-visualization-container"
+                role="img"
+                aria-label={generateChartAriaLabel({
+                    geomType,
+                    rows: guardedRows,
+                    columns: guardedCols,
+                    color,
+                    size,
+                    shape,
+                })}
+                data-chart-type={geomType}
                 style={{
                     ...(layoutMode === 'auto' ? {} : { width: '100%', height: '100%' }),
                 }}
@@ -567,9 +601,26 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
                 ref={containerRef}
             >
                 {/* <div ref={container}></div> */}
-                {viewPlaceholders.map((view, i) => (
-                    <div key={i} ref={view} className={layoutMode === 'auto' ? '' : 'overflow-hidden'}></div>
-                ))}
+                {viewPlaceholders.map((view, i) => {
+                    const rowIndex = Math.floor(i / Math.max(colRepeatFields.length, 1));
+                    const colIndex = i % Math.max(colRepeatFields.length, 1);
+                    const rowField = rowRepeatFields[rowIndex];
+                    const colField = colRepeatFields[colIndex];
+
+                    return (
+                        <div
+                            key={i}
+                            ref={view}
+                            className={layoutMode === 'auto' ? '' : 'overflow-hidden'}
+                            data-testid={`chart-facet-${i}`}
+                            data-row-index={rowIndex}
+                            data-col-index={colIndex}
+                            {...(rowField ? { 'data-row-facet': rowField.fid } : {})}
+                            {...(colField ? { 'data-col-facet': colField.fid } : {})}
+                            aria-label={generateFacetAriaLabel(rowIndex, colIndex, rowField, colField)}
+                        />
+                    );
+                })}
             </CanvaContainer>
         </div>
     );

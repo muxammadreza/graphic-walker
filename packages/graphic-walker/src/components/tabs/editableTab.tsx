@@ -25,6 +25,9 @@ interface EditableTabsProps {
     onEditLabel?: (label: string, index: number) => void;
     onDuplicate?: (index: number) => void;
     onRemove?: (index: number) => void;
+    'data-testid'?: string;
+    role?: string;
+    'aria-label'?: string;
 }
 
 const Slider = (props: { className?: string; children: React.ReactNode }) => {
@@ -67,7 +70,7 @@ const Slider = (props: { className?: string; children: React.ReactNode }) => {
                 ref.current?.removeEventListener('wheel', onWheel);
             };
         },
-        [onWheel]
+        [onWheel],
     );
 
     const childRefCB = useCallback((node: HTMLDivElement) => {
@@ -120,9 +123,9 @@ export default function EditableTabs(props: EditableTabsProps) {
         <div className="overflow-y-visible">
             <RemoveConfirm />
             <Dialog
-                open={editingIndex > -1}
-                onOpenChange={() => {
-                    setEditingIndex(-1);
+                open={editingIndex !== -1}
+                onOpenChange={(newOpen) => {
+                    if (!newOpen) setEditingIndex(-1);
                 }}
             >
                 <DialogContent>
@@ -162,7 +165,7 @@ export default function EditableTabs(props: EditableTabsProps) {
                 </DialogContent>
             </Dialog>
             <Slider>
-                <nav className="-mb-px flex h-8" role="tablist" aria-label="Tabs">
+                <nav className="-mb-px flex h-8" role={props.role ?? 'tablist'} aria-label={props['aria-label'] ?? 'Tabs'} data-testid={props['data-testid']}>
                     {tabs.map((tab, tabIndex) => (
                         <span
                             role="tab"
@@ -176,8 +179,11 @@ export default function EditableTabs(props: EditableTabsProps) {
                             key={tab.key}
                             className={classNames(
                                 tab.key === selectedKey ? 'border' : 'text-muted-foreground hover:text-accent-foreground hover:bg-accent',
-                                'flex whitespace-nowrap rounded-t group py-1 px-2 pr-2 text-sm cursor-default'
+                                'flex whitespace-nowrap rounded-t group py-1 px-2 pr-2 text-sm cursor-default',
                             )}
+                            data-testid={`chart-tab-${tab.key}`}
+                            aria-label={tab.label}
+                            aria-selected={tab.key === selectedKey}
                         >
                             {tab.label}
                             {tab.key === selectedKey && tab.editable && (
@@ -195,6 +201,7 @@ export default function EditableTabs(props: EditableTabsProps) {
                                                     setName(tab.label);
                                                 });
                                             }}
+                                            data-testid={`chart-tab-edit-${tab.key}`}
                                         >
                                             Edit
                                         </DropdownMenuItem>
@@ -204,6 +211,7 @@ export default function EditableTabs(props: EditableTabsProps) {
                                                 e.stopPropagation();
                                                 onDuplicate?.(tabIndex);
                                             }}
+                                            data-testid={`chart-tab-duplicate-${tab.key}`}
                                         >
                                             Duplicate
                                         </DropdownMenuItem>
@@ -214,6 +222,7 @@ export default function EditableTabs(props: EditableTabsProps) {
                                                     e.stopPropagation();
                                                     onRemove?.(tabIndex);
                                                 }}
+                                                data-testid={`chart-tab-remove-${tab.key}`}
                                             >
                                                 Remove
                                             </DropdownMenuItem>

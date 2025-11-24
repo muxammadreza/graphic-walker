@@ -50,14 +50,30 @@ const SingleEncodeEditor: React.FC<MultiEncodeEditorProps> = (props) => {
     }, [allFields]);
 
     return (
-        <div className="relative select-none flex flex-col py-0.5 px-1 touch-none" {...provided.droppableProps} ref={refMapper(provided.innerRef)}>
+        <div
+            className="relative select-none flex flex-col py-0.5 px-1 touch-none"
+            data-testid={`shelf-${dkey.id}`}
+            aria-label={`${dkey.id} encoding shelf`}
+            role="region"
+            {...provided.droppableProps}
+            ref={refMapper(provided.innerRef)}
+        >
             {channelItems.map((channelItem, index) => {
                 return (
-                    <Draggable key={`encode_${dkey.id}_${index}_${getFieldIdentifier(channelItem)}`} draggableId={`encode_${dkey.id}_${index}_${getFieldIdentifier(channelItem)}`} index={index}>
+                    <Draggable
+                        key={`encode_${dkey.id}_${index}_${getFieldIdentifier(channelItem)}`}
+                        draggableId={`encode_${dkey.id}_${index}_${getFieldIdentifier(channelItem)}`}
+                        index={index}
+                    >
                         {(provided, snapshot) => {
+                            const fieldId = getFieldIdentifier(channelItem);
                             return (
                                 <div
                                     ref={refMapper(provided.innerRef)}
+                                    data-testid={`encode-${dkey.id}-${index}-${fieldId}`}
+                                    aria-label={`${channelItem.name} in ${dkey.id} shelf position ${index + 1}`}
+                                    role="button"
+                                    tabIndex={0}
                                     {...provided.draggableProps}
                                     {...provided.dragHandleProps}
                                     className={
@@ -71,6 +87,10 @@ const SingleEncodeEditor: React.FC<MultiEncodeEditorProps> = (props) => {
                                             vizStore.removeField(dkey.id, 0);
                                         }}
                                         className="grow-0 shrink-0 px-1.5 flex items-center justify-center bg-destructive text-destructive-foreground cursor-pointer"
+                                        role="button"
+                                        aria-label={`Remove ${channelItem.name} from ${dkey.id}`}
+                                        tabIndex={0}
+                                        data-testid={`remove-encode-${dkey.id}-${index}-${fieldId}`}
                                     >
                                         <TrashIcon className="w-4" />
                                     </div>
@@ -100,7 +120,12 @@ const SingleEncodeEditor: React.FC<MultiEncodeEditorProps> = (props) => {
                                                         vizStore.setFieldAggregator(dkey.id, 0, value as IAggregator);
                                                     }}
                                                 >
-                                                    <span className="bg-transparent text-muted-foreground float-right focus:outline-none focus: dark:focus: flex items-center ml-2">
+                                                    <span
+                                                        className="bg-transparent text-muted-foreground float-right focus:outline-none focus: dark:focus: flex items-center ml-2"
+                                                        data-testid={`aggregation-${dkey.id}-${index}-${fieldId}`}
+                                                        aria-label={`Aggregation for ${channelItem.name}`}
+                                                        role="button"
+                                                    >
                                                         {channelItem.aggName || ''}
                                                         <ChevronUpDownIcon className="w-3" />
                                                     </span>
@@ -119,6 +144,7 @@ const SingleEncodeEditor: React.FC<MultiEncodeEditorProps> = (props) => {
                 className={`p-1.5 m-1 bg-muted text-muted-foreground pointer-events-none border flex item-center justify-center grow ${
                     (snapshot.draggingFromThisWith && channelItems.length === 1) || channelItems.length === 0 ? 'opacity-100' : 'opacity-0'
                 } absolute inset-0 z-0`}
+                aria-hidden={channelItems.length > 0 && !snapshot.draggingFromThisWith ? 'true' : 'false'}
             >
                 {t('actions.drop_field')}
             </div>

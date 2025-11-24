@@ -1,9 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import React from 'react';
-import {
-    Draggable,
-    Droppable, DroppableProvided,
-} from "@kanaries/react-beautiful-dnd";
+import { Draggable, Droppable, DroppableProvided } from '@kanaries/react-beautiful-dnd';
 
 import { useVizStore } from '../../store';
 import { FilterFieldContainer, FilterFieldsContainer } from '../components';
@@ -11,7 +8,6 @@ import FilterPill from './filterPill';
 import FilterEditDialog from './filterEditDialog';
 import { refMapper } from '../fieldsContext';
 import { getFieldIdentifier } from '@/utils';
-
 
 interface FieldContainerProps {
     provided: DroppableProvided;
@@ -23,19 +19,17 @@ const FilterItemContainer: React.FC<FieldContainerProps> = observer(({ provided 
 
     return (
         <FilterFieldsContainer
-            className='touch-none'
+            className="touch-none"
             {...provided.droppableProps}
             ref={refMapper(provided.innerRef)}
+            data-testid="shelf-filters"
+            aria-label="Filters drop zone"
+            role="region"
         >
             {filters.map((f, index) => (
                 <Draggable key={`filters_${index}_${getFieldIdentifier(f)}`} draggableId={`filters_${index}_${getFieldIdentifier(f)}`} index={index}>
                     {(provided, snapshot) => {
-                        return (
-                            <FilterPill
-                                fIndex={index}
-                                provided={provided}
-                            />
-                        );
+                        return <FilterPill fIndex={index} provided={provided} />;
                     }}
                 </Draggable>
             ))}
@@ -50,11 +44,7 @@ const FilterField: React.FC = () => {
         <div>
             <FilterFieldContainer>
                 <Droppable droppableId="filters" direction="vertical">
-                    {(provided, snapshot) => (
-                        <FilterItemContainer
-                            provided={provided}
-                        />
-                    )}
+                    {(provided, snapshot) => <FilterItemContainer provided={provided} />}
                 </Droppable>
             </FilterFieldContainer>
         </div>
