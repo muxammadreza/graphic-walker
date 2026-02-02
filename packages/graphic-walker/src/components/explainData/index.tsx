@@ -8,7 +8,7 @@ import embed from 'vega-embed';
 import { VegaGlobalConfig, IDarkMode, IThemeKey, IField, IRow, IPredicate } from '../../interfaces';
 import { builtInThemes } from '../../vis/theme';
 import { explainBySelection } from '../../lib/insights/explainBySelection';
-import { Dialog, DialogContent } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import LoadingLayer from '../loadingLayer';
 import { themeContext } from '@/store/theme';
 
@@ -221,7 +221,13 @@ const ExplainData: React.FC<{
                 setSelectedInfoIndex(0);
             }}
         >
-            <DialogContent>
+            <DialogContent data-testid="explain-data-dialog" aria-describedby="explain-data-description">
+                <DialogHeader>
+                    <DialogTitle>Explain Data</DialogTitle>
+                </DialogHeader>
+                <div id="explain-data-description" className="sr-only">
+                    Explore data insights and explanations for the selected mark
+                </div>
                 {explainDataInfoList.length === 0 && <LoadingLayer />}
                 <Container className="grid grid-cols-4">
                     <TabsList className="col-span-1">

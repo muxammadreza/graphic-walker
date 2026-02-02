@@ -90,10 +90,13 @@ export const PureFilterEditDialog = (props: {
 
     return uncontrolledField ? (
         <Dialog open={Boolean(uncontrolledField)} onOpenChange={onClose}>
-            <DialogContent data-testid="filter-edit-dialog">
+            <DialogContent data-testid="filter-edit-dialog" aria-describedby="filter-dialog-description">
                 <DialogHeader>
                     <DialogTitle id="filter-dialog-title">{t('editing')}</DialogTitle>
                 </DialogHeader>
+                <div id="filter-dialog-description" className="sr-only">
+                    {t('editing')}
+                </div>
                 <div className="pt-4 text-xs">
                     <div className="grid grid-cols-2 gap-4">
                         <div>

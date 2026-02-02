@@ -20,10 +20,20 @@ const OBFieldContainer: React.FC<FieldContainerProps> = (props) => {
     const vizStore = useVizStore();
     const { allEncodings } = vizStore;
     return (
-        <FieldsContainer {...provided.droppableProps} ref={refMapper(provided.innerRef)}>
+        <FieldsContainer
+            {...provided.droppableProps}
+            ref={refMapper(provided.innerRef)}
+            role="region"
+            aria-label={`${dkey.id} encoding fields`}
+            data-testid={`ob-field-container-${dkey.id}`}
+        >
             {/* {provided.placeholder} */}
             {allEncodings[dkey.id].map((f, index) => (
-                <Draggable key={`encode_${dkey.id}_${index}_${getFieldIdentifier(f)}`} draggableId={`encode_${dkey.id}_${index}_${getFieldIdentifier(f)}`} index={index}>
+                <Draggable
+                    key={`encode_${dkey.id}_${index}_${getFieldIdentifier(f)}`}
+                    draggableId={`encode_${dkey.id}_${index}_${getFieldIdentifier(f)}`}
+                    index={index}
+                >
                     {(provided, snapshot) => {
                         return <OBPill dkey={dkey} fIndex={index} provided={provided} />;
                     }}

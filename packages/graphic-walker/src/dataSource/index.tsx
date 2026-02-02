@@ -52,6 +52,8 @@ const DataSourceSegment: React.FC<DSSegmentProps> = observer((props) => {
                 onClick={() => {
                     commonStore.startDSBuildingTask();
                 }}
+                data-testid="create-dataset-btn"
+                aria-label={t('DataSource.buttons.create_dataset')}
             >
                 {t('DataSource.buttons.create_dataset')}
             </Button>
@@ -63,6 +65,8 @@ const DataSourceSegment: React.FC<DSSegmentProps> = observer((props) => {
                         const blob = await onSave();
                         downloadBlob(blob, 'graphic-walker-notebook.json');
                     }}
+                    data-testid="export-file-btn"
+                    aria-label={t('DataSource.buttons.export_as_file')}
                 >
                     {t('DataSource.buttons.export_as_file')}
                 </Button>
@@ -76,6 +80,8 @@ const DataSourceSegment: React.FC<DSSegmentProps> = observer((props) => {
                             gwFileRef.current.click();
                         }
                     }}
+                    data-testid="import-file-btn"
+                    aria-label={t('DataSource.buttons.import_file')}
                 >
                     {t('DataSource.buttons.import_file')}
                 </Button>
@@ -86,10 +92,13 @@ const DataSourceSegment: React.FC<DSSegmentProps> = observer((props) => {
                 }}
                 open={showDSPanel}
             >
-                <DialogContent>
+                <DialogContent data-testid="create-datasource-dialog" aria-describedby="datasource-dialog-description">
                     <DialogHeader>
                         <DialogTitle>{t('DataSource.dialog.create_data_source')}</DialogTitle>
                     </DialogHeader>
+                    <div id="datasource-dialog-description" className="sr-only">
+                        {t('DataSource.dialog.create_data_source')}
+                    </div>
                     <DataSelection commonStore={commonStore} />
                 </DialogContent>
             </Dialog>
@@ -183,7 +192,7 @@ export function DataSourceSegmentComponent(props: {
         () => async (payload) => {
             return selectedId ? props.provider.queryData(payload, [selectedId]) : [];
         },
-        [computationID, props.provider, selectedId]
+        [computationID, props.provider, selectedId],
     );
 
     const onMetaChange = useCallback(
@@ -194,7 +203,7 @@ export function DataSourceSegmentComponent(props: {
                 return result;
             });
         },
-        [props.provider, selectedId]
+        [props.provider, selectedId],
     );
 
     const commonStore = useMemo(() => new CommonStore(props.provider, setSelectedId, { displayOffset: props.displayOffset }), [props.provider]);
@@ -240,7 +249,7 @@ export function DataSourceSegmentComponent(props: {
 
     const darkMode = useCurrentMediaTheme(props.appearance ?? props.dark);
     const [currentTheme, setCurrentTheme] = useState<IThemeKey | GWGlobalConfig>(
-        (props.vizThemeConfig ?? props.themeConfig ?? props.themeKey) as IThemeKey | GWGlobalConfig
+        (props.vizThemeConfig ?? props.themeConfig ?? props.themeKey) as IThemeKey | GWGlobalConfig,
     );
     const [portal, setPortal] = useState<HTMLDivElement | null>(null);
 

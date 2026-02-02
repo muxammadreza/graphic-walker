@@ -47,20 +47,29 @@ const SelectContext: React.FC<ISelectContextProps> = (props) => {
 
     return (
         <Popover>
-            <div className="relative w-full flex items-center space-x-2">
+            <div className="relative w-full flex items-center space-x-2" data-testid="select-context-container">
                 <span className="flex-1 block truncate text-start">{props.children}</span>
                 <PopoverTrigger asChild>
-                    <div className="grow-0 shrink-0 flex items-center relative">
+                    <div
+                        className="grow-0 shrink-0 flex items-center relative"
+                        role="button"
+                        aria-label={`Configure options for ${props.children}. ${selected.length} selected.`}
+                        aria-haspopup="menu"
+                        data-testid="select-context-trigger"
+                    >
                         <Cog6ToothIcon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                         {selected.length > 0 && (
-                            <span className="absolute top-0 right-0 h-4 px-1 translate-x-1/2 -translate-y-1/2 scale-[67%] flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-normal pointer-events-none">
+                            <span
+                                className="absolute top-0 right-0 h-4 px-1 translate-x-1/2 -translate-y-1/2 scale-[67%] flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-normal pointer-events-none"
+                                aria-label={`${selected.length} options selected`}
+                            >
                                 {selected.length > 10 ? '10+' : selected.length}
                             </span>
                         )}
                     </div>
                 </PopoverTrigger>
             </div>
-            <PopoverContent className="mt-1 max-h-60 w-fit overflow-auto rounded-md py-1 px-0 text-base sm:text-sm">
+            <PopoverContent className="mt-1 max-h-60 w-fit overflow-auto rounded-md py-1 px-0 text-base sm:text-sm" data-testid="select-context-menu">
                 <Listbox multiple value={selected} onChange={setSelected}>
                     <ListboxOptions static>
                         {options.map((option) => (
@@ -68,6 +77,7 @@ const SelectContext: React.FC<ISelectContextProps> = (props) => {
                                 key={option.key}
                                 className={`relative cursor-default rounded-md mx-1 select-none py-2 pl-10 pr-4 text-popover-foreground hover:bg-accent hover:text-accent-foreground`}
                                 value={option}
+                                data-testid={`select-context-option-${option.key}`}
                             >
                                 {({ selected }) => (
                                     <>

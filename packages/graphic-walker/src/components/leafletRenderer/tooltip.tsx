@@ -1,7 +1,6 @@
-import React, { memo, useMemo } from "react";
-import type { DeepReadonly, IViewField, VegaGlobalConfig } from "../../interfaces";
-import { useDisplayValueFormatter } from "./utils";
-
+import React, { memo, useMemo } from 'react';
+import type { DeepReadonly, IViewField, VegaGlobalConfig } from '../../interfaces';
+import { useDisplayValueFormatter } from './utils';
 
 export interface ITooltipContentProps {
     allFields: readonly DeepReadonly<IViewField>[];
@@ -10,15 +9,17 @@ export interface ITooltipContentProps {
     value: unknown;
 }
 
-export const TooltipContent = memo<ITooltipContentProps>(function TooltipContent ({ allFields, vegaConfig, field, value }) {
+export const TooltipContent = memo<ITooltipContentProps>(function TooltipContent({ allFields, vegaConfig, field, value }) {
     const { fid, analyticType, aggName } = field;
     const fieldDisplayLabel = useMemo(() => {
-        const name = allFields.find(f => f.fid === fid)?.name ?? fid;
+        const name = allFields.find((f) => f.fid === fid)?.name ?? fid;
         return analyticType === 'measure' && aggName ? `${aggName}(${name})` : name;
     }, [allFields, fid, analyticType, aggName]);
     const formatter = useDisplayValueFormatter(field.semanticType, vegaConfig);
-    
+
     return (
-        <p>{fieldDisplayLabel}: {formatter(value)}</p>
+        <p role="status" aria-live="polite">
+            {fieldDisplayLabel}: {formatter(value)}
+        </p>
     );
 });

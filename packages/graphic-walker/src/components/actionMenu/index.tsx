@@ -100,6 +100,7 @@ const ActionMenu: React.FC<IActionMenuProps & Omit<HTMLAttributes<HTMLDivElement
                                         left: coord[0],
                                         top: coord[1],
                                     }}
+                                    data-testid="action-menu-items"
                                 >
                                     <ActionMenuItemList title={title} items={menu} onDismiss={close} />
                                 </MenuItems>

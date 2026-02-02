@@ -29,6 +29,7 @@ const DropdownContext: React.FC<IDropdownContextProps> = (props) => {
                 {options.map((option, index) => (
                     <DropdownMenuItem
                         key={option.value}
+                        data-testid={`dropdown-menu-item-${option.value}`}
                         onClick={() => {
                             props.onSelect && !props.disable && props.onSelect(option.value, index);
                         }}

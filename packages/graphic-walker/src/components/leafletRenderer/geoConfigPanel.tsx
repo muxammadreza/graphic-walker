@@ -8,7 +8,7 @@ import DropdownSelect from '../dropdownSelect';
 import Dropzone from 'react-dropzone';
 import { GeojsonRenderer } from './geojsonRenderer';
 import { Button } from '../ui/button';
-import { Dialog, DialogContent, DialogFooter } from '../ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 
@@ -47,10 +47,10 @@ const GeoConfigPanel = ({ geoList = emptyList }: { geoList?: IGeoDataItem[] }) =
                     geoList.map((x, i) => ({
                         label: x.name,
                         value: `${i}`,
-                    }))
+                    })),
                 )
                 .concat({ label: 'Manual Configuration', value: '-2' }),
-        [geoList]
+        [geoList],
     );
     const setSelectItem = useMemo(() => (a: string) => setSelectItemR(parseInt(a)), []);
 
@@ -102,7 +102,7 @@ const GeoConfigPanel = ({ geoList = emptyList }: { geoList?: IGeoDataItem[] }) =
                         objectKey: topoJSONKey || defaultTopoJSONKey,
                     },
                     featureId,
-                    loadedUrl?.type === 'TopoJSON' ? loadedUrl : undefined
+                    loadedUrl?.type === 'TopoJSON' ? loadedUrl : undefined,
                 );
             } else {
                 vizStore.setGeographicData(
@@ -111,7 +111,7 @@ const GeoConfigPanel = ({ geoList = emptyList }: { geoList?: IGeoDataItem[] }) =
                         data: json,
                     },
                     featureId,
-                    loadedUrl?.type === 'GeoJSON' ? loadedUrl : undefined
+                    loadedUrl?.type === 'GeoJSON' ? loadedUrl : undefined,
                 );
             }
             vizStore.setShowGeoJSONConfigPanel(false);
@@ -127,8 +127,13 @@ const GeoConfigPanel = ({ geoList = emptyList }: { geoList?: IGeoDataItem[] }) =
                 vizStore.setShowGeoJSONConfigPanel(false);
             }}
         >
-            <DialogContent>
-                <h2 className="text-lg mb-4">{t('geography')}</h2>
+            <DialogContent data-testid="geo-config-dialog" aria-describedby="geo-config-description">
+                <DialogHeader>
+                    <DialogTitle>{t('geography')}</DialogTitle>
+                </DialogHeader>
+                <div id="geo-config-description" className="sr-only">
+                    Configure geographic data and settings for map visualization
+                </div>
                 <div>
                     <div className="my-2">
                         <label className="block text-xs font-medium leading-6">{t('geography_settings.geoKey')}</label>

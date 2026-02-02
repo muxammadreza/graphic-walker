@@ -39,11 +39,11 @@ export default function ColorPanel(props: { display: ColorDisplay; field: IField
                             }}
                         ></div>
                         <div className="font-xs flex flex-col justify-between">
-                            <div>{Math.floor(display.domain[1])}</div>
-                            <div>{Math.floor(display.domain[1] * 0.75 + display.domain[0] * 0.25)}</div>
-                            <div>{Math.floor(display.domain[1] * 0.5 + display.domain[0] * 0.5)}</div>
-                            <div>{Math.floor(display.domain[1] * 0.25 + display.domain[0] * 0.75)}</div>
-                            <div>{Math.floor(display.domain[0])}</div>
+                            <div>{String(Math.floor(display.domain[1]) || 0)}</div>
+                            <div>{String(Math.floor(display.domain[1] * 0.75 + display.domain[0] * 0.25) || 0)}</div>
+                            <div>{String(Math.floor(display.domain[1] * 0.5 + display.domain[0] * 0.5) || 0)}</div>
+                            <div>{String(Math.floor(display.domain[1] * 0.25 + display.domain[0] * 0.75) || 0)}</div>
+                            <div>{String(Math.floor(display.domain[0]) || 0)}</div>
                         </div>
                     </div>
                 </div>

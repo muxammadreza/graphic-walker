@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { EllipsisVerticalIcon } from '@heroicons/react/24/outline';
 import { unstable_batchedUpdates } from 'react-dom';
 import RemoveConfirm from '../removeConfirm';
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from '../ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
@@ -128,9 +128,11 @@ export default function EditableTabs(props: EditableTabsProps) {
                     if (!newOpen) setEditingIndex(-1);
                 }}
             >
-                <DialogContent>
-                    <DialogHeader>{t('main.tablist.chart_name')}</DialogHeader>
-                    <div className="py-4">
+                <DialogContent data-testid="edit-chart-name-dialog" aria-describedby="edit-chart-name-description">
+                    <DialogHeader>
+                        <DialogTitle>{t('main.tablist.chart_name')}</DialogTitle>
+                    </DialogHeader>
+                    <div id="edit-chart-name-description" className="py-4">
                         <Input
                             value={name}
                             onChange={(e) => {
@@ -170,9 +172,6 @@ export default function EditableTabs(props: EditableTabsProps) {
                         <span
                             role="tab"
                             tabIndex={0}
-                            // dangerouslySetInnerHTML={{
-                            //     __html: tab.label
-                            // }}
                             onClick={() => {
                                 onSelected(tab.key, tabIndex);
                             }}
@@ -184,6 +183,7 @@ export default function EditableTabs(props: EditableTabsProps) {
                             data-testid={`chart-tab-${tab.key}`}
                             aria-label={tab.label}
                             aria-selected={tab.key === selectedKey}
+                            aria-controls={`tabpanel-${tab.key}`}
                         >
                             {tab.label}
                             {tab.key === selectedKey && tab.editable && (

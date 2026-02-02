@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useVizStore } from '../../store';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogFooter } from '../ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 
@@ -82,8 +82,13 @@ const CodeExport: React.FC = observer((props) => {
                 vizStore.setShowCodeExportPanel(false);
             }}
         >
-            <DialogContent>
-                <h1>Code Export</h1>
+            <DialogContent data-testid="code-export-dialog" aria-describedby="code-export-description">
+                <DialogHeader>
+                    <DialogTitle>Code Export</DialogTitle>
+                </DialogHeader>
+                <div id="code-export-description" className="sr-only">
+                    Export and copy the visualization code in different formats
+                </div>
                 <Tabs value={tabKey} onValueChange={setTabKey}>
                     <TabsList className="my-1">
                         {specTabs.map((tab) => (

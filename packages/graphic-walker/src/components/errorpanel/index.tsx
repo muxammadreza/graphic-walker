@@ -3,7 +3,7 @@ import { useVizStore } from '../../store';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/button';
-import { Dialog, DialogContent } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 
 export default observer(function ErrorPanel() {
     const vizStore = useVizStore();
@@ -18,10 +18,14 @@ export default observer(function ErrorPanel() {
         case 500:
             return (
                 <Dialog open={true} onOpenChange={closeModal}>
-                    <DialogContent className="!w-fit">
+                    <DialogContent className="!w-fit" data-testid="error-panel-500" aria-describedby="error-500-description">
+                        <DialogHeader>
+                            <DialogTitle>Oops!</DialogTitle>
+                        </DialogHeader>
                         <div className="flex flex-col justify-center items-start">
-                            <h2 className="font-medium text-xl my-2">Oops!</h2>
-                            <p className="font-normal my-2">The chart is too large to render. You can try options above:</p>
+                            <p id="error-500-description" className="font-normal my-2">
+                                The chart is too large to render. You can try options above:
+                            </p>
                             <p className="font-normal my-2">
                                 1. Set the chart to a fixed size.
                                 <a
@@ -59,10 +63,14 @@ export default observer(function ErrorPanel() {
         case 501:
             return (
                 <Dialog open={true} onOpenChange={closeModal}>
-                    <DialogContent>
+                    <DialogContent data-testid="error-panel-501" aria-describedby="error-501-description">
+                        <DialogHeader>
+                            <DialogTitle>Oops!</DialogTitle>
+                        </DialogHeader>
                         <div className="flex flex-col justify-center items-start">
-                            <h2 className="font-medium text-xl my-2">Oops!</h2>
-                            <p className="font-normal my-2">There is some error with Computation service. Here is the Error message:</p>
+                            <p id="error-501-description" className="font-normal my-2">
+                                There is some error with Computation service. Here is the Error message:
+                            </p>
                             <p className="font-normal my-2">{vizStore.lastErrorMessage}</p>
 
                             <fieldset className="mt-2 gap-1 flex flex-col justify-center items-end w-full">
@@ -77,10 +85,14 @@ export default observer(function ErrorPanel() {
         case 502:
             return (
                 <Dialog open={true} onOpenChange={closeModal}>
-                    <DialogContent>
+                    <DialogContent data-testid="error-panel-502" aria-describedby="error-502-description">
+                        <DialogHeader>
+                            <DialogTitle>Oops!</DialogTitle>
+                        </DialogHeader>
                         <div className="flex flex-col justify-center items-start">
-                            <h2 className="font-medium text-xl my-2">Oops!</h2>
-                            <p className="font-normal my-2">There is some error with Askviz service. Here is the Error message:</p>
+                            <p id="error-502-description" className="font-normal my-2">
+                                There is some error with Askviz service. Here is the Error message:
+                            </p>
                             <p className="font-normal my-2">{vizStore.lastErrorMessage}</p>
 
                             <fieldset className="mt-2 gap-1 flex flex-col justify-center items-end w-full">

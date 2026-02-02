@@ -104,7 +104,7 @@ const AskViz: React.FC<{
     const showFeedback = feedbackApi && lastData && vizStore.showAskvizFeedbackIndex === vizStore.visIndex;
 
     return (
-        <div className="right-0 flex relative">
+        <div className="right-0 flex relative" data-testid="askviz-container">
             <Input
                 type="text"
                 className="pr-24"
@@ -117,19 +117,28 @@ const AskViz: React.FC<{
                     }
                 }}
                 disabled={loading || allFields.length === 0}
+                aria-label="Ask a visualization question"
+                data-testid="askviz-input"
             />
             <Button
                 className="rounded-l-none w-20 absolute inset-y-0 right-0"
                 disabled={loading || query.length === 0 || allFields.length === 0}
                 onClick={startQuery}
                 id="askviz_ask"
+                aria-label="Submit visualization query"
+                data-testid="askviz-submit-btn"
             >
                 Ask
                 {!loading && <PaperAirplaneIcon className="w-4 ml-1" />}
                 {loading && <Spinner className="w-4 h-4 ml-1" />}
             </Button>
             {showFeedback && askVizFeedback === 'vote' && (
-                <div className="absolute z-10 top-full right-0 flex-col space-y-2 w-56 mt-1 p-4 border rounded bg-popover text-popover-foreground">
+                <div
+                    className="absolute z-10 top-full right-0 flex-col space-y-2 w-56 mt-1 p-4 border rounded bg-popover text-popover-foreground"
+                    role="alert"
+                    aria-live="polite"
+                    data-testid="askviz-feedback-vote"
+                >
                     <div>{t('App.feedback.vote')}</div>
                     <div className="flex space-x-2">
                         <Button
@@ -138,6 +147,8 @@ const AskViz: React.FC<{
                                 reportVizQuery(feedbackApi, { action: 'voteup', question: lastData.question, spec: lastData.data }, props.headers ?? {});
                                 setAskVizFeedback('none');
                             }}
+                            aria-label="This visualization is helpful"
+                            data-testid="askviz-vote-up"
                         >
                             <HandThumbUpIcon className="w-4 h-4" />
                             {t('App.feedback.voteup')}
@@ -149,6 +160,8 @@ const AskViz: React.FC<{
                                 reportVizQuery(feedbackApi, { action: 'votedown', question: lastData.question, spec: lastData.data }, props.headers ?? {});
                                 setAskVizFeedback('report');
                             }}
+                            aria-label="This visualization needs improvement"
+                            data-testid="askviz-vote-down"
                         >
                             <HandThumbDownIcon className="w-4 h-4" />
                             {t('App.feedback.votedown')}
@@ -157,7 +170,12 @@ const AskViz: React.FC<{
                 </div>
             )}
             {showFeedback && askVizFeedback === 'report' && (
-                <div className="absolute z-10 top-full right-0 flex-col space-y-2 w-56 mt-1 p-4 border rounded bg-popover text-popover-foreground">
+                <div
+                    className="absolute z-10 top-full right-0 flex-col space-y-2 w-56 mt-1 p-4 border rounded bg-popover text-popover-foreground"
+                    role="alert"
+                    aria-live="polite"
+                    data-testid="askviz-feedback-report"
+                >
                     <div>{t('App.feedback.report')}</div>
                     <div>
                         <Button
@@ -168,10 +186,12 @@ const AskViz: React.FC<{
                                 reportVizQuery(
                                     feedbackApi,
                                     { action: 'report', question: lastData.question, spec: JSON.stringify(vizStore.exportCode()[vizStore.visIndex]) },
-                                    props.headers ?? {}
+                                    props.headers ?? {},
                                 );
                                 setAskVizFeedback('none');
                             }}
+                            aria-label="Report an issue with this visualization"
+                            data-testid="askviz-report-btn"
                         >
                             {t('App.feedback.report_button')}
                         </Button>

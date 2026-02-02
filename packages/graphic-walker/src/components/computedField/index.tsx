@@ -6,7 +6,7 @@ import { highlightField } from '../highlightField';
 import { aggFuncs, reservedKeywords, sqlFunctions } from '../../lib/sql';
 import { COUNT_FIELD_ID, MEA_KEY_ID, MEA_VAL_ID, PAINT_FIELD_ID } from '../../constants';
 import { unstable_batchedUpdates } from 'react-dom';
-import { Dialog, DialogContent } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 
@@ -95,10 +95,12 @@ const ComputedFieldDialog: React.FC = observer(() => {
                 vizStore.setComputedFieldFid();
             }}
         >
-            <DialogContent>
+            <DialogContent data-testid="computed-field-dialog" aria-describedby="computed-field-description">
+                <DialogHeader>
+                    <DialogTitle>{editingComputedFieldFid === '' ? 'Add Computed Field' : 'Edit Computed Field'}</DialogTitle>
+                </DialogHeader>
                 <div className="flex flex-col space-y-2">
-                    <div>
-                        <div className="text-xl font-bold">{editingComputedFieldFid === '' ? 'Add Computed Field' : 'Edit Computed Field'}</div>
+                    <div id="computed-field-description">
                         <span className="text-xs text-muted-foreground">
                             Computed fields guide:{' '}
                             <a

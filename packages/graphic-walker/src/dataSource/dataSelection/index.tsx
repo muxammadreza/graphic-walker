@@ -12,15 +12,19 @@ const DataSelection: React.FC<{ commonStore: CommonStore }> = (props) => {
     return (
         <div className="text-sm">
             <div className="mt-4">
-                <Tabs defaultValue="file">
-                    <TabsList>
-                        <TabsTrigger value="file">{t('dialog.text_file_data')}</TabsTrigger>
-                        <TabsTrigger value="public">{t('dialog.public_data')}</TabsTrigger>
+                <Tabs defaultValue="file" data-testid="data-source-tabs">
+                    <TabsList aria-label="Data source selection">
+                        <TabsTrigger value="file" data-testid="data-source-tab-file">
+                            {t('dialog.text_file_data')}
+                        </TabsTrigger>
+                        <TabsTrigger value="public" data-testid="data-source-tab-public">
+                            {t('dialog.public_data')}
+                        </TabsTrigger>
                     </TabsList>
-                    <TabsContent value="file">
+                    <TabsContent value="file" data-testid="data-source-content-file">
                         <CSVData commonStore={commonStore} />
                     </TabsContent>
-                    <TabsContent value="public">
+                    <TabsContent value="public" data-testid="data-source-content-public">
                         <PublicData commonStore={commonStore} />
                     </TabsContent>
                 </Tabs>

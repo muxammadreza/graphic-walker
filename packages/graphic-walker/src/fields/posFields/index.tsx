@@ -26,7 +26,7 @@ const PosFields: React.FC = (props) => {
         return DRAGGABLE_STATE_KEYS.filter((f) => f.id === 'columns' || f.id === 'rows') as IDraggableViewStateKey[];
     }, [geoms[0], coordSystem]);
     return (
-        <div>
+        <div role="region" aria-label="Position encoding fields" data-testid="pos-fields-container">
             {channels.map((dkey, i) => (
                 <FieldListContainer name={dkey.id} key={dkey.id}>
                     <Droppable droppableId={dkey.id} direction="horizontal">

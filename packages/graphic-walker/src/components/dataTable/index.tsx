@@ -430,7 +430,7 @@ const DataTable = forwardRef(
                 )}
                 <div className="overflow-y-auto h-full" style={{ maxHeight: '600px' }} data-testid="data-table-container" role="region" aria-label="Data table">
                     <div className="h-0 w-full" ref={stickyDector}></div>
-                    <table className="min-w-full relative border-x">
+                    <table className="min-w-full relative border-x" role="table" aria-label="Data table with sorting and filtering" data-testid="data-table">
                         <thead className={`sticky top-0 bg-background ${isSticky ? 'shadow-md' : ''}`}>
                             {headers.map((row) => (
                                 <tr className="divide-x divide-border" key={`row_${getHeaderKey(row[0])}`}>

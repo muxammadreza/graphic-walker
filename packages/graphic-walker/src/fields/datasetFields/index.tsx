@@ -102,7 +102,11 @@ const DatasetFields: React.FC = (props) => {
                 className="w-full flex flex-col"
                 style={{ height: geoms[0] === 'serpentine' ? `${fieldListHeightPercent}%` : '100%', minHeight: 0 }}
             >
-                <CollapsibleTrigger className="flex items-center w-full cursor-pointer select-none mt-2 mb-2">
+                <CollapsibleTrigger
+                    className="flex items-center w-full cursor-pointer select-none mt-2 mb-2"
+                    aria-label={isFieldListOpen ? 'Collapse field list' : 'Expand field list'}
+                    data-testid="field-list-toggle"
+                >
                     {isFieldListOpen ? <ChevronDownIcon className="mr-1" /> : <ChevronRightIcon className="mr-1" />}
                     <h4 className="text-xs font-bold">{t('field_list')}</h4>
                 </CollapsibleTrigger>
@@ -113,6 +117,9 @@ const DatasetFields: React.FC = (props) => {
                                 className="flex-shrink min-w-[0px] min-h-[100px] overflow-y-auto gw-scrollbar"
                                 {...provided.droppableProps}
                                 ref={refMapper(provided.innerRef)}
+                                role="region"
+                                aria-label="Dimension fields"
+                                data-testid="dimensions-droppable"
                             >
                                 <div className="pd-1">
                                     <DimFields />
@@ -126,6 +133,9 @@ const DatasetFields: React.FC = (props) => {
                                 className="flex-shrink flex-grow min-w-[0px] min-h-[100px] overflow-y-auto flex-1 gw-scrollbar"
                                 {...provided.droppableProps}
                                 ref={refMapper(provided.innerRef)}
+                                role="region"
+                                aria-label="Measure fields"
+                                data-testid="measures-droppable"
                             >
                                 <div className="border-t flex-grow pd-1 overflow-y-auto h-full gw-scrollbar">
                                     <MeaFields />
@@ -142,6 +152,14 @@ const DatasetFields: React.FC = (props) => {
                         className="w-full h-[6px] cursor-ns-resize hover:bg-gray-300 active:bg-gray-400 flex items-center justify-center relative group"
                         onMouseDown={handleMouseDown}
                         style={{ userSelect: 'none' }}
+                        role="separator"
+                        aria-orientation="horizontal"
+                        aria-label="Resize field list and configuration panels"
+                        aria-valuenow={fieldListHeightPercent}
+                        aria-valuemin={20}
+                        aria-valuemax={80}
+                        tabIndex={0}
+                        data-testid="field-list-resize-handle"
                     >
                         <div className="w-12 h-[2px] bg-gray-400 rounded-full group-hover:bg-gray-500"></div>
                     </div>
@@ -151,7 +169,11 @@ const DatasetFields: React.FC = (props) => {
                         className="w-full flex flex-col"
                         style={{ height: `${100 - fieldListHeightPercent}%`, minHeight: 0 }}
                     >
-                        <CollapsibleTrigger className="flex items-center w-full cursor-pointer select-none mb-2 mt-1">
+                        <CollapsibleTrigger
+                            className="flex items-center w-full cursor-pointer select-none mb-2 mt-1"
+                            aria-label={isConfigOpen ? 'Collapse configuration' : 'Expand configuration'}
+                            data-testid="serpentine-config-toggle"
+                        >
                             {isConfigOpen ? <ChevronDownIcon className="mr-1" /> : <ChevronRightIcon className="mr-1" />}
                             <h4 className="text-xs font-bold">Serpentine Chart Configurations</h4>
                         </CollapsibleTrigger>

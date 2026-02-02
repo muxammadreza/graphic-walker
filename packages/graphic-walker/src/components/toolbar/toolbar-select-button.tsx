@@ -42,7 +42,16 @@ const ToolbarSelectButton = memo<IToolbarProps<ToolbarSelectButtonItem>>(functio
                 })}
             >
                 <DropdownMenuTrigger disabled={disabled} asChild>
-                    <Button className="relative" disabled={disabled} variant="none" size="toolbar">
+                    <Button
+                        className="relative"
+                        disabled={disabled}
+                        variant="none"
+                        size="toolbar"
+                        data-testid={`toolbar-${key}`}
+                        aria-label={item.label}
+                        aria-haspopup="menu"
+                        aria-expanded={opened}
+                    >
                         <Icon className="w-[18px] h-[18px]" style={styles?.icon} />
                         {CurrentIcon && <CurrentIcon style={styles?.icon} className="absolute w-[11px] h-[11px] right-[7px] bottom-[5px]" />}
                     </Button>

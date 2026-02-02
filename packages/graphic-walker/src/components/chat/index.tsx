@@ -47,7 +47,7 @@ async function queryChat(
         chats: IChatMessage[];
         query: string;
     },
-    headers: Record<string, string>
+    headers: Record<string, string>,
 ) {
     const chats = data.chats.concat({
         role: 'user',
@@ -70,7 +70,7 @@ function UserMessage(props: { message: IUserChatMessage; onRemove?: () => void }
                 </div>
                 <CardTitle className="flex-1">You</CardTitle>
                 {props.onRemove && (
-                    <Button variant="ghost" size="icon-sm" onClick={props.onRemove}>
+                    <Button variant="ghost" size="icon-sm" onClick={props.onRemove} aria-label="Remove this message" data-testid="chat-remove-user-message">
                         <TrashIcon className="w-4 h-4" />
                     </Button>
                 )}
@@ -138,7 +138,13 @@ const AssistantMessage = observer(function AssistantMessage(props: { message: IA
                 </div>
                 <CardTitle className="flex-1">Viz.GPT</CardTitle>
                 {props.onRemove && (
-                    <Button variant="ghost" size="icon-sm" onClick={props.onRemove}>
+                    <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={props.onRemove}
+                        aria-label="Remove this visualization"
+                        data-testid="chat-remove-assistant-message"
+                    >
                         <TrashIcon className="w-4 h-4" />
                     </Button>
                 )}
@@ -196,7 +202,13 @@ export const VegaliteChat = observer(function VegaliteChat(props: {
     };
 
     return (
-        <div className="flex flex-col gap-4 p-4 pb-12">
+        <div
+            className="flex flex-col gap-4 p-4 pb-12"
+            role="log"
+            aria-live="polite"
+            aria-label="Chat conversation with AI assistant"
+            data-testid="chat-conversation"
+        >
             {chatMessages.map((m, i, arr) => {
                 if (m.role === 'assistant') {
                     return (
@@ -226,8 +238,10 @@ export const VegaliteChat = observer(function VegaliteChat(props: {
                     }}
                     placeholder="Ask question about your data"
                     onChange={(e) => setQuery(e.target.value)}
+                    aria-label="Ask a question about your data"
+                    data-testid="chat-input"
                 />
-                <Button disabled={loading} onClick={submit}>
+                <Button disabled={loading} onClick={submit} aria-label="Submit question" data-testid="chat-submit-btn">
                     {loading && <ArrowPathIcon className="w-3 h-3 mr-2 animate-spin" />}Submit
                 </Button>
             </div>

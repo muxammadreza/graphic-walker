@@ -19,7 +19,7 @@ import { GWGlobalConfig, builtInThemes } from '../../vis/theme';
 import { unstable_batchedUpdates } from 'react-dom';
 import { autoMark } from '../../vis/spec/mark';
 import { Button } from '../ui/button';
-import { Dialog, DialogContent } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Slider } from '../ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { uiThemeContext, themeContext } from '@/store/theme';
@@ -1231,7 +1231,13 @@ const Painter = ({ themeConfig, themeKey }: { themeConfig?: GWGlobalConfig; them
                 vizStore.setShowPainter(false);
             }}
         >
-            <DialogContent>
+            <DialogContent data-testid="painter-dialog" aria-describedby="painter-description">
+                <DialogHeader>
+                    <DialogTitle>{t('main.tabpanel.settings.paint.title') || 'Paint Editor'}</DialogTitle>
+                </DialogHeader>
+                <div id="painter-description" className="sr-only">
+                    {t('main.tabpanel.settings.paint.description') || 'Edit your paint map using the brush tools'}
+                </div>
                 {loading && <LoadingLayer />}
                 {!loading && !aggInfo && (
                     <PainterContent

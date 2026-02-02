@@ -97,10 +97,11 @@ const ActionMenuItem = memo<IActionMenuItemProps>(function ActionMenuItem({ item
             role="button"
             aria-haspopup={children.length ? 'menu' : undefined}
             aria-disabled={disabled}
+            data-testid={`action-menu-item-${label.toLowerCase().replace(/\s+/g, '-')}`}
             className={classNames(
                 active ? 'bg-accent text-accent-foreground' : 'text-foreground',
                 disabled ? 'text-muted-foreground' : 'cursor-pointer',
-                'transition-colors text-xs'
+                'transition-colors text-xs',
             )}
             onClick={(e) => {
                 if (disabled || children.length) {

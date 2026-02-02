@@ -23,7 +23,14 @@ function Combobox({
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-                <Button variant="outline" role="combobox" aria-expanded={open} className={cn('flex justify-between', className)}>
+                <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    aria-label={placeholder}
+                    data-testid="dropdown-combobox-trigger"
+                    className={cn('flex justify-between', className)}
+                >
                     <div className="shrink min-w-[0px] overflow-hidden text-ellipsis whitespace-nowrap">
                         {options.find((opt) => opt.value === selectedKey)?.label ?? placeholder}
                     </div>
@@ -32,7 +39,7 @@ function Combobox({
             </PopoverTrigger>
             <PopoverContent className={cn('p-0', popClassName)}>
                 <Command>
-                    <CommandInput placeholder="Search..." className="h-9" />
+                    <CommandInput placeholder="Search..." className="h-9" aria-label="Search options" data-testid="dropdown-combobox-search" />
                     <CommandEmpty>No options found.</CommandEmpty>
                     <ScrollArea className="h-min max-h-48">
                         <CommandGroup>
@@ -40,6 +47,7 @@ function Combobox({
                                 <CommandItem
                                     key={opt.value}
                                     value={opt.value}
+                                    data-testid={`dropdown-option-${opt.value}`}
                                     onSelect={() => {
                                         if (opt.value === '_none') {
                                             onSelect?.('');

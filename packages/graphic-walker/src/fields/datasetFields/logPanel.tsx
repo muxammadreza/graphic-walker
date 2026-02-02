@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useVizStore } from '../../store';
 import { ICreateField } from '../../interfaces';
-import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -22,10 +22,14 @@ const FieldScalePanel: React.FC = (props) => {
                 vizStore.setShowLogSettingPanel(false);
             }}
         >
-            <DialogContent className="!w-fit">
+            <DialogContent className="!w-fit" data-testid="log-panel-dialog" aria-describedby="log-panel-description">
+                <DialogHeader>
+                    <DialogTitle>{t(`calc.log_panel_title`)}</DialogTitle>
+                </DialogHeader>
                 <div className="flex flex-col justify-center items-start text-xs ">
-                    <h2 className="text-lg font-medium mb-2">{t(`calc.log_panel_title`)}</h2>
-                    <p className="font-normal text-muted-foreground">{t(`calc.log_panel_desc`)}</p>
+                    <p id="log-panel-description" className="font-normal text-muted-foreground">
+                        {t(`calc.log_panel_desc`)}
+                    </p>
                     <fieldset className="mt-2 gap-1 flex flex-col justify-center items-start">
                         <div className="flex items-center space-x-2">
                             <label className="text-ml whitespace-nowrap">{t(`calc.log_panel_number`)}</label>
