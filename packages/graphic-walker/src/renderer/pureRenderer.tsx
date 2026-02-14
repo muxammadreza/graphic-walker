@@ -205,6 +205,6 @@ const PureRenderer = forwardRef<IReactVegaHandler, IPureRendererProps & (LocalPr
 });
 
 export default observer(withAppRoot<IPureRendererProps>(PureRenderer)) as {
-    (p: ILocalPureRendererProps): React.ReactNode;
-    (p: IRemotePureRendererProps): React.ReactNode;
+    (p: ILocalPureRendererProps): React.JSX.Element;
+    (p: IRemotePureRendererProps): React.JSX.Element;
 };
