@@ -27,8 +27,8 @@
     "url": "https://github.com/Kanaries/graphic-walker/issues"
   },
   "resolutions": {
-    "@types/react": "^18.x",
-    "@types/react-dom": "^18.x"
+    "@types/react": "^19.x",
+    "@types/react-dom": "^19.x"
   },
   "homepage": "https://github.com/Kanaries/graphic-walker#readme",
   "engines": {

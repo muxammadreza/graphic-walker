@@ -156,7 +156,7 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
         displayOffset,
         serpentine,
     } = props;
-    const [viewPlaceholders, setViewPlaceholders] = useState<React.MutableRefObject<HTMLDivElement>[]>([]);
+    const [viewPlaceholders, setViewPlaceholders] = useState<React.RefObject<HTMLDivElement>[]>([]);
     const mediaTheme = useContext(themeContext);
     const scales = useMemo(() => {
         const cs = channelScaleRaw ?? {};
