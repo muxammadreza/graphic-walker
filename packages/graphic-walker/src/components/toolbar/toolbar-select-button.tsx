@@ -11,7 +11,6 @@ export interface ToolbarSelectButtonItem<T extends string = string> extends IToo
             props: React.SVGProps<SVGSVGElement> & {
                 title?: string | undefined;
                 titleId?: string | undefined;
-            },
             }
         ) => React.ReactNode;
         label: string;

@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest';
 import type { IViewField } from '../interfaces';
 import { generateChartAriaLabel, generateLongDescription, generateFacetAriaLabel } from './chartAccessibility';
 
@@ -63,7 +62,7 @@ describe('chartAccessibility utilities', () => {
 
             expect(label).toContain('Bar chart');
             expect(label).toContain('sum of Revenue');
-            expect(label).toContain('avg of Profit');
+            expect(label).toContain('avg Profit');
         });
 
         it('should handle empty encodings gracefully', () => {

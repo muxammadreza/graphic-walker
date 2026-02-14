@@ -901,7 +901,7 @@ export interface IThemeProps {
 }
 
 export interface IErrorHandlerProps {
-    onError?: (err: Error) => void;
+    onError?: (error: unknown, info?: React.ErrorInfo) => void;
 }
 
 export interface IUserChatMessage {
