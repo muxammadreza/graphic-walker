@@ -35,7 +35,7 @@ const MeaFields: React.FC = (props) => {
                                         className={`touch-none flex pt-0.5 pb-0.5 pl-2 pr-2 mx-0 m-1 text-xs hover:bg-measure/20 rounded-md truncate border border-transparent ${
                                             snapshot.isDragging ? 'bg-measure/20' : ''
                                         }`}
-                                        isDragging={snapshot.isDragging}
+                                        $isDragging={snapshot.isDragging}
                                         ref={refMapper(provided.innerRef)}
                                         data-testid={`field-measure-${fieldId}`}
                                         aria-label={`${f.name} measure field`}
@@ -57,7 +57,7 @@ const MeaFields: React.FC = (props) => {
                                             className={`pt-0.5 pb-0.5 pl-2 pr-2 mx-0 m-1 text-xs hover:bg-measure/20 rounded-md border-measure border truncate ${
                                                 snapshot.isDragging ? 'bg-measure/20 flex' : 'hidden'
                                             }`}
-                                            isDragging={snapshot.isDragging}
+                                            $isDragging={snapshot.isDragging}
                                             aria-hidden="true"
                                         >
                                             <DataTypeIcon dataType={f.semanticType} analyticType={f.analyticType} />
