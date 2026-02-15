@@ -1,6 +1,7 @@
 import React, { useContext, useMemo, useEffect, createContext, useRef } from 'react';
 import { VizSpecStore } from './visualSpecStore';
 import { IComputationFunction, IDefaultConfig, IMutField, IRow } from '../interfaces';
+import { hasMetaChanged, hasOnMetaChangeChanged } from './metaChange';
 
 function createKeepAliveContext<T, U extends any[]>(create: (...args: U) => T) {
     const dict: Record<string, T> = {};
@@ -53,22 +54,18 @@ export const VizStoreWrapper = (props: VizStoreWrapperProps) => {
     }, [storeKey]);
     const lastMeta = useRef(props.meta);
     useEffect(() => {
-        // Deep comparison: check if field IDs have changed
-        // This handles cases where the array reference is the same but content changed
-        const metaChanged = lastMeta.current.length !== props.meta.length || !lastMeta.current.every((field, i) => field.fid === props.meta[i]?.fid);
-
-        if (metaChanged) {
+        if (hasMetaChanged(lastMeta.current, props.meta)) {
             store.setMeta(props.meta);
             lastMeta.current = props.meta;
         }
     }, [props.meta, store]);
     const lastOnMetaChange = useRef(props.onMetaChange);
     useEffect(() => {
-        if (lastOnMetaChange.current !== props.onMetaChange) {
+        if (hasOnMetaChangeChanged(lastOnMetaChange.current, props.onMetaChange)) {
             store.setOnMetaChange(props.onMetaChange);
             lastOnMetaChange.current = props.onMetaChange;
         }
-    }, [props.meta, store]);
+    }, [props.onMetaChange, store]);
 
     const lastDefaultConfig = useRef(props.defaultConfig);
     const lastDefaultRenderer = useRef(props.defaultRenderer);

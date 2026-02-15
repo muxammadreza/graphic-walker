@@ -27,12 +27,11 @@ import { ErrorBoundary } from 'react-error-boundary';
 import Errorpanel from './components/errorpanel';
 import { useCurrentMediaTheme } from './utils/media';
 import { classNames, getFilterMeaAggKey, parseErrorMessage } from './utils';
-import { VegaliteMapper } from './lib/vl2gw';
-import { newChart } from './models/visSpecHistory';
 import { SimpleOneOfSelector, SimpleRange, SimpleSearcher, SimpleTemporalRange } from './fields/filterField/simple';
 import { toWorkflow } from './utils/workflow';
 import { useResizeDetector } from 'react-resize-detector';
 import { VizAppContext } from './store/context';
+import { mapVegaLiteSpecToChart } from './lib/vlSpecMapper';
 
 type BaseVizProps = IAppI18nProps &
     IVizProps &
@@ -105,15 +104,7 @@ export const RendererApp = observer(function VizApp(props: BaseVizProps) {
 
     useEffect(() => {
         if (vlSpec) {
-            const emptyChart = newChart(vizStore.meta, '');
-            vizStore.replaceNow(
-                VegaliteMapper(
-                    spec,
-                    [...emptyChart.encodings.dimensions, ...emptyChart.encodings.measures],
-                    vizStore.currentVis.name ?? 'Chart 1',
-                    vizStore.currentVis.visId
-                )
-            );
+            vizStore.replaceNow(mapVegaLiteSpecToChart(vlSpec, vizStore.meta, vizStore.currentVis.name ?? 'Chart 1', vizStore.currentVis.visId));
         }
     }, [vlSpec, vizStore]);
 
