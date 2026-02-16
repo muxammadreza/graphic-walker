@@ -4,6 +4,7 @@ export type { ILocalPureRendererProps, IRemotePureRendererProps } from './render
 export { embedGraphicWalker, embedGraphicRenderer, embedPureRenderer, embedTableWalker } from './vanilla';
 export * from './interfaces';
 export * from './store/visualSpecStore';
+export * from './events';
 export { resolveChart, convertChart, parseChart } from './models/visSpecHistory';
 export { getGlobalConfig } from './config';
 export { DataSourceSegmentComponent } from './dataSource';

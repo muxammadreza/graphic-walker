@@ -33,4 +33,21 @@ describe('VizStoreWrapper', () => {
         expect(hasMetaChanged(baseMeta, baseMeta)).toBe(false);
         expect(hasMetaChanged(baseMeta, updatedMeta)).toBe(true);
     });
+
+    it('does not treat simple metadata reordering as a semantic change', () => {
+        const reordered: IMutField[] = [
+            {
+                fid: 'age',
+                key: 'note.age',
+                name: 'Age',
+                basename: 'Age',
+                semanticType: 'quantitative',
+                analyticType: 'measure',
+            },
+            ...baseMeta,
+        ];
+        const sameDifferentOrder: IMutField[] = [baseMeta[0], reordered[0]];
+
+        expect(hasMetaChanged(reordered, sameDifferentOrder)).toBe(false);
+    });
 });

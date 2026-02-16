@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { EllipsisVerticalIcon } from '@heroicons/react/24/outline';
 import { unstable_batchedUpdates } from 'react-dom';
 import RemoveConfirm from '../removeConfirm';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
@@ -128,11 +128,12 @@ export default function EditableTabs(props: EditableTabsProps) {
                     if (!newOpen) setEditingIndex(-1);
                 }}
             >
-                <DialogContent data-testid="edit-chart-name-dialog" aria-describedby="edit-chart-name-description">
+                <DialogContent data-testid="edit-chart-name-dialog">
                     <DialogHeader>
                         <DialogTitle>{t('main.tablist.chart_name')}</DialogTitle>
+                        <DialogDescription>Edit the title of the current chart tab.</DialogDescription>
                     </DialogHeader>
-                    <div id="edit-chart-name-description" className="py-4">
+                    <div className="py-4">
                         <Input
                             value={name}
                             onChange={(e) => {

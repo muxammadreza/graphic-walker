@@ -28,7 +28,6 @@ function vegaLiteToPlot(spec: any): any {
     if (typeof markType === 'object' && markType.type) {
         markType = markType.type;
     }
-    console.log({ encoding: spec.encoding, markType });
     // 3) Gather encoding fields
     const enc = spec.encoding || {};
     const xField = enc.x?.field || null;
@@ -39,15 +38,12 @@ function vegaLiteToPlot(spec: any): any {
     const sizeField = enc.size?.field || null;
     const tooltipEnc = enc.tooltip;
 
-    console.log({ xField, yField, xFacetField, yFacetField, colorField, sizeField, tooltipEnc });
     // etc. shape, opacity, text, etc. if present
 
     // Helper function to determine mark direction based on axis types
     const getMarkDirection = (markType: string, enc: any) => {
         const xIsQuantitative = enc.x?.type === 'quantitative';
         const yIsQuantitative = enc.y?.type === 'quantitative';
-        const xIsTemporal = enc.x?.type === 'temporal';
-        const yIsTemporal = enc.y?.type === 'temporal';
         
         // For marks that have directional variants, determine the appropriate direction
         const directionalMarks = {
@@ -63,21 +59,17 @@ function vegaLiteToPlot(spec: any): any {
         if (directionalMarks[markType]) {
             // If X is quantitative and Y is not quantitative (temporal, ordinal, nominal), use X-direction mark
             if (xIsQuantitative && !yIsQuantitative) {
-                console.log(`Using X-direction mark for ${markType}: X is quantitative (${enc.x?.type}), Y is ${enc.y?.type}`);
                 return { markFunction: directionalMarks[markType].X, stackAxis: 'X' as const };
             }
             // If Y is quantitative and X is not quantitative, use Y-direction mark
             if (yIsQuantitative && !xIsQuantitative) {
-                console.log(`Using Y-direction mark for ${markType}: Y is quantitative (${enc.y?.type}), X is ${enc.x?.type}`);
                 return { markFunction: directionalMarks[markType].Y, stackAxis: 'Y' as const };
             }
             // If both are quantitative, default to Y-direction (most common case)
             if (xIsQuantitative && yIsQuantitative) {
-                console.log(`Both axes quantitative for ${markType}, defaulting to Y-direction`);
                 return { markFunction: directionalMarks[markType].Y, stackAxis: 'Y' as const };
             }
             // If neither is quantitative, default to Y-direction
-            console.log(`Neither axis quantitative for ${markType}, defaulting to Y-direction`);
             return { markFunction: directionalMarks[markType].Y, stackAxis: 'Y' as const };
         }
         
@@ -153,8 +145,6 @@ function vegaLiteToPlot(spec: any): any {
             stackOptions.offset = "center";
         }
         
-        console.log('Stack options for mark:', { stackMode, stackOptions });
-        
         return stackOptions;
     };
 
@@ -198,14 +188,6 @@ function vegaLiteToPlot(spec: any): any {
             ...baseConfig,
             z: colorField || undefined,
         };
-        
-        console.log(`Applying ${stackAxis}-direction stacking:`, {
-            stackFunction: stackFunction.name,
-            stackOptions,
-            dataLength: sortedData.length,
-            primaryField: stackAxis === 'X' ? yField : xField,
-            colorField
-        });
         
         return markFunction(sortedData, stackFunction(stackOptions, configWithZ));
     };
@@ -259,19 +241,6 @@ function vegaLiteToPlot(spec: any): any {
         // For area charts, if there's a color field and no explicit stack=false, we should stack
         const shouldStack = stacked || (colorField && ['bar', 'area'].includes(markType) && stacked !== false);
         
-        console.log(`Creating ${markType} mark:`, {
-            markFunction: markFunction.name,
-            stackAxis,
-            shouldStack,
-            stacked,
-            stackMode,
-            colorField,
-            hasColorField: !!colorField,
-            isStackableMarkType: ['bar', 'area'].includes(markType),
-            xType: enc.x?.type,
-            yType: enc.y?.type
-        });
-        
         if (shouldStack && colorField) {
             // Apply stacking
             return applyStacking(markFunction, data, baseConfig, stackAxis);
@@ -285,7 +254,6 @@ function vegaLiteToPlot(spec: any): any {
                 const xIsQuantitative = enc.x?.type === 'quantitative';
                 const yIsTemporal = enc.y?.type === 'temporal';
                 const xIsTemporal = enc.x?.type === 'temporal';
-                const yIsQuantitative = enc.y?.type === 'quantitative';
                 
                 // Sort by the temporal field to ensure proper line connection
                 sortedData = [...data].sort((a, b) => {
@@ -305,20 +273,10 @@ function vegaLiteToPlot(spec: any): any {
                     // Secondary sort by color field for consistent grouping
                     return colorField && a[colorField] < b[colorField] ? -1 : 1;
                 });
-                
-                console.log(`Sorted line chart data:`, {
-                    temporalField: xIsTemporal ? xField : yField,
-                    xIsQuantitative,
-                    yIsTemporal,
-                    originalLength: data.length,
-                    sortedLength: sortedData.length,
-                    sampleData: sortedData.slice(0, 3)
-                });
-                
+                                
                 // For the case where X is quantitative and Y is temporal,
                 // we need to ensure the line connects properly
                 if (xIsQuantitative && yIsTemporal) {
-                    console.log('Special case: X quantitative, Y temporal - using curve: "linear" for better connection');
                     const configWithZ = {
                         ...baseConfig,
                         z: colorField || undefined,
@@ -494,11 +452,7 @@ export function toObservablePlotSpec({
         displayOffset,
     });
 
-    console.log({ vlSpecs });
-
     const plotSpecs: any[] = vlSpecs.map((vlSpec) => vegaLiteToPlot(vlSpec));
-
-    console.log({ plotSpecs });
     return plotSpecs;
 }
 

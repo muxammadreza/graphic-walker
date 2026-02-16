@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useVizStore } from '../../store';
 import { useTranslation } from 'react-i18next';
 import { ICreateField } from '../../interfaces';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Input } from '@/components/ui/input';
@@ -28,12 +28,13 @@ const FieldScalePanel: React.FC = (props) => {
                 setShowBinSettingPanel(false);
             }}
         >
-            <DialogContent className="!w-fit" data-testid="bin-panel-dialog" aria-describedby="bin-panel-description">
+            <DialogContent className="!w-fit" data-testid="bin-panel-dialog">
                 <DialogHeader>
                     <DialogTitle>{t('calc.bin_panel_title')}</DialogTitle>
+                    <DialogDescription>{t('calc.bin_panel_desc')}</DialogDescription>
                 </DialogHeader>
                 <div className="flex flex-col justify-center items-start text-xs">
-                    <p id="bin-panel-description" className="font-normal text-muted-foreground">
+                    <p className="font-normal text-muted-foreground">
                         {t('calc.bin_panel_desc')}
                     </p>
                     <RadioGroup

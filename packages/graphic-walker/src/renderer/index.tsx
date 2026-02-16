@@ -145,7 +145,6 @@ const Renderer = forwardRef<IReactVegaHandler, RendererProps>(function (props, r
 
     const handleGeomClick = useCallback(
         (values: any, e: MouseEvent & { item: Item }) => {
-            console.log('handleGeomClick called', { values, EMBEDED_MENU_LIST_length: GLOBAL_CONFIG.EMBEDED_MENU_LIST.length });
             e.stopPropagation();
             if (GLOBAL_CONFIG.EMBEDED_MENU_LIST.length > 0) {
                 runInAction(() => {
@@ -153,9 +152,7 @@ const Renderer = forwardRef<IReactVegaHandler, RendererProps>(function (props, r
                     vizStore.setFilters(values);
                 });
                 const { vlPoint, ...datums } = values;
-                console.log('datums after destructuring:', datums);
                 const selectedMarkObject = Object.fromEntries(Object.entries(datums).map(([k, vs]) => [k, vs instanceof Array ? vs[0] : vs]));
-                console.log('selectedMarkObject created:', selectedMarkObject);
                 // check selected fields include temporal, and return temporal timestamp to original data
                 const allFields = viewEncodingKeys(visualConfig.geoms[0]).flatMap((k) => encodings[k] as IViewField[]);
                 const selectedTemporalFields = Object.keys(selectedMarkObject)
@@ -185,10 +182,8 @@ const Renderer = forwardRef<IReactVegaHandler, RendererProps>(function (props, r
                     // use the filter in mark group
                     const keys = new Set(Object.keys(e.item.mark.group.datum ?? {}));
                     const filteredObj = Object.fromEntries(Object.entries<string | number>(selectedMarkObject).filter(([k]) => keys.has(k)));
-                    console.log('Filtered for line chart:', filteredObj);
                     vizStore.updateSelectedMarkObject(filteredObj);
                 } else {
-                    console.log('Updating vizStore with selectedMarkObject:', selectedMarkObject);
                     vizStore.updateSelectedMarkObject(selectedMarkObject);
                 }
             }
@@ -233,6 +228,7 @@ const Renderer = forwardRef<IReactVegaHandler, RendererProps>(function (props, r
             {waiting && <LoadingLayer />}
             <div className="overflow-auto w-full h-full">
                 <SpecRenderer
+                    instanceID={vizStore.instanceID}
                     name={chart?.name}
                     data={viewData}
                     ref={ref}

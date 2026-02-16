@@ -6,7 +6,7 @@ import { IComputationFunction, IVisFilter } from '../interfaces';
 import { addFilterForQuery, addTransformForQuery, processExpression } from '../utils/workflow';
 import { COUNT_FIELD_ID, MEA_KEY_ID, MEA_VAL_ID } from '../constants';
 import { isNotEmpty } from '../utils';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { toJS } from 'mobx';
 
 const DataBoard = observer(function DataBoardModal({ hideProfiling }: { hideProfiling?: boolean }) {
@@ -55,13 +55,11 @@ const DataBoard = observer(function DataBoardModal({ hideProfiling }: { hideProf
                 vizStore.setShowDataBoard(false);
             }}
         >
-            <DialogContent data-testid="data-board-dialog" aria-describedby="data-board-description">
+            <DialogContent data-testid="data-board-dialog">
                 <DialogHeader>
                     <DialogTitle>Data Board</DialogTitle>
+                    <DialogDescription>View and explore the filtered data table.</DialogDescription>
                 </DialogHeader>
-                <div id="data-board-description" className="sr-only">
-                    View and explore the filtered data table
-                </div>
                 <div className="mt-4">
                     <DataTable
                         hideProfiling={hideProfiling}

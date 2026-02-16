@@ -15,7 +15,7 @@ import { isNotEmpty } from '../../utils';
 import { timezones } from './timezone';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogNormalContent, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogNormalContent, DialogTitle } from '../ui/dialog';
 import Combobox from '../dropdownSelect/combobox';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { vegaThemeContext } from '../../store/theme';
@@ -227,14 +227,13 @@ const VisualConfigPanel: React.FC = () => {
                     setDisplayBackgroundPicker(false);
                 }}
                 data-testid="visual-config-dialog"
-                aria-describedby="visual-config-description"
             >
                 <DialogHeader className="sr-only">
                     <DialogTitle>Visual Configuration</DialogTitle>
+                    <DialogDescription>
+                        Configure visual settings for your chart including colors, scales, formats, and other display options.
+                    </DialogDescription>
                 </DialogHeader>
-                <div id="visual-config-description" className="sr-only">
-                    Configure visual settings for your chart including colors, scales, formats, and other display options.
-                </div>
                 <div className="flex flex-col max-h-[calc(min(800px,90vh))] py-6">
                     <div className="overflow-y-auto flex-shrink-1 min-h-0 px-6">
                         <ConfigItemContainer data-testid="visual-config-colors-section">
@@ -388,7 +387,7 @@ const VisualConfigPanel: React.FC = () => {
                                 <ConfigItemTitle>{t('config.format')}</ConfigItemTitle>
                                 <p className="text-xs">
                                     {t(`config.formatGuidesDocs`)}:{' '}
-                                    <a target="_blank" className="hover:underline text-primary" href="https://github.com/d3/d3-format#locale_format">
+                                    <a target="_blank" rel="noopener noreferrer" className="hover:underline text-primary" href="https://github.com/d3/d3-format#locale_format">
                                         {t(`config.readHere`)}
                                     </a>
                                 </p>

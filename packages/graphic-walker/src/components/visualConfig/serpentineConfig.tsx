@@ -10,6 +10,7 @@ import { serpentineViewService } from '../../services/serpentineViewService';
 
 const SerpentineConfig: React.FC = () => {
     const vizStore = useVizStore();
+    const instanceID = vizStore.instanceID;
     const { config } = vizStore;
     const { serpentine } = config;
 
@@ -46,7 +47,7 @@ const SerpentineConfig: React.FC = () => {
     const handleChangeWhileDragging = (key: keyof ISerpentineConfig, value: any) => {
         const newConfig = { ...localConfig, [key]: value };
         setLocalConfig(newConfig); // Immediate UI update
-        serpentineViewService.updateSignal(key, value); // Immediate Vega update
+        serpentineViewService.updateSignal(instanceID, key, value); // Immediate Vega update
         // NO persistence call here - this fires continuously while dragging
     };
 
@@ -91,7 +92,7 @@ const SerpentineConfig: React.FC = () => {
                         onCheckedChange={(checked) => {
                             const newConfig = { ...localConfig, labelsOnHover: !!checked };
                             setLocalConfig(newConfig);
-                            serpentineViewService.updateSignal('labelsOnHover', !!checked);
+                            serpentineViewService.updateSignal(instanceID, 'labelsOnHover', !!checked);
                             vizStore.updateVisualConfigDirect('serpentine', newConfig);
                         }}
                     />
@@ -160,7 +161,7 @@ const SerpentineConfig: React.FC = () => {
                         onChange={(e) => {
                             const newConfig = { ...localConfig, annotationStart: e.target.value };
                             setLocalConfig(newConfig);
-                            serpentineViewService.updateSignal('annotationStart', e.target.value);
+                            serpentineViewService.updateSignal(instanceID, 'annotationStart', e.target.value);
                             vizStore.updateVisualConfigDirect('serpentine', newConfig);
                         }}
                     />
@@ -173,7 +174,7 @@ const SerpentineConfig: React.FC = () => {
                         onChange={(e) => {
                             const newConfig = { ...localConfig, annotationEnd: e.target.value };
                             setLocalConfig(newConfig);
-                            serpentineViewService.updateSignal('annotationEnd', e.target.value);
+                            serpentineViewService.updateSignal(instanceID, 'annotationEnd', e.target.value);
                             vizStore.updateVisualConfigDirect('serpentine', newConfig);
                         }}
                     />
@@ -186,7 +187,7 @@ const SerpentineConfig: React.FC = () => {
                         onCheckedChange={(checked) => {
                             const newConfig = { ...localConfig, includeArrows: !!checked };
                             setLocalConfig(newConfig);
-                            serpentineViewService.updateSignal('includeArrows', !!checked);
+                            serpentineViewService.updateSignal(instanceID, 'includeArrows', !!checked);
                             vizStore.updateVisualConfigDirect('serpentine', newConfig);
                         }}
                     />

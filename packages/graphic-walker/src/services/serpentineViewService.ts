@@ -5,36 +5,43 @@ import type { View } from 'vega';
  * This allows SerpentineConfig to update signals directly without triggering MobX reactivity.
  */
 class SerpentineViewService {
-    private view: View | null = null;
+    private views: Map<string, View> = new Map();
 
-    setView(view: View | null) {
-        this.view = view;
+    setView(instanceID: string, view: View | null) {
+        if (view) {
+            this.views.set(instanceID, view);
+            return;
+        }
+        this.views.delete(instanceID);
     }
 
-    getView(): View | null {
-        return this.view;
+    getView(instanceID: string): View | null {
+        return this.views.get(instanceID) ?? null;
     }
 
-    updateSignal(name: string, value: any) {
-        if (this.view) {
+    updateSignal(instanceID: string, name: string, value: unknown) {
+        const view = this.views.get(instanceID);
+        if (view) {
             try {
-                this.view.signal(name, value);
-                this.view.runAsync();
+                view.signal(name, value);
+                view.runAsync();
             } catch (error) {
                 console.warn(`Failed to update serpentine signal ${name}:`, error);
             }
         }
     }
 
-    addSignalListener(name: string, handler: (name: string, value: any) => void) {
-        if (this.view) {
-            this.view.addSignalListener(name, handler);
+    addSignalListener(instanceID: string, name: string, handler: (name: string, value: unknown) => void) {
+        const view = this.views.get(instanceID);
+        if (view) {
+            view.addSignalListener(name, handler);
         }
     }
 
-    removeSignalListener(name: string, handler: (name: string, value: any) => void) {
-        if (this.view) {
-            this.view.removeSignalListener(name, handler);
+    removeSignalListener(instanceID: string, name: string, handler: (name: string, value: unknown) => void) {
+        const view = this.views.get(instanceID);
+        if (view) {
+            view.removeSignalListener(name, handler);
         }
     }
 }

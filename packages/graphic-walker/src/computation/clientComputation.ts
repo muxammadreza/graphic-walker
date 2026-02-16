@@ -1,5 +1,6 @@
 import type { IDataQueryPayload, IDataQueryWorkflowStep, IFilterFiledSimple, IRow } from "../interfaces";
 import { applyFilter, applySort, applyViewQuery, transformDataService } from "../services";
+import { debugLog } from "../utils/debug";
 
 export const dataQueryClient = async (
     rawData: IRow[],
@@ -7,9 +8,7 @@ export const dataQueryClient = async (
     offset?: number,
     limit?: number,
 ): Promise<IRow[]> => {
-    if (process.env.NODE_ENV !== "production") {
-        console.log('local query triggered', workflow);
-    }
+    debugLog('local query triggered', workflow);
     let res = rawData;
     for await (const step of workflow) {
         switch (step.type) {

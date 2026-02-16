@@ -8,7 +8,7 @@ import DropdownSelect from '../dropdownSelect';
 import Dropzone from 'react-dropzone';
 import { GeojsonRenderer } from './geojsonRenderer';
 import { Button } from '../ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 
@@ -127,13 +127,11 @@ const GeoConfigPanel = ({ geoList = emptyList }: { geoList?: IGeoDataItem[] }) =
                 vizStore.setShowGeoJSONConfigPanel(false);
             }}
         >
-            <DialogContent data-testid="geo-config-dialog" aria-describedby="geo-config-description">
+            <DialogContent data-testid="geo-config-dialog">
                 <DialogHeader>
                     <DialogTitle>{t('geography')}</DialogTitle>
+                    <DialogDescription>Configure geographic data and map settings for this visualization.</DialogDescription>
                 </DialogHeader>
-                <div id="geo-config-description" className="sr-only">
-                    Configure geographic data and settings for map visualization
-                </div>
                 <div>
                     <div className="my-2">
                         <label className="block text-xs font-medium leading-6">{t('geography_settings.geoKey')}</label>

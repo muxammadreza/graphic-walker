@@ -24,15 +24,15 @@
         "@kanaries/graphic-walker": "0.5.0",
         "@vercel/analytics": "^1.1.1",
         "color-space": "2.0.1",
-        "react": "^19.2.3",
+        "react": "^19.2.4",
         "react-color": "^2.19.3",
-        "react-dom": "^19.2.3",
+        "react-dom": "^19.2.4",
         "react-router": "^6.20.0",
         "react-router-dom": "^6.20.0",
         "react-syntax-highlighter": "^15.5.0"
     },
     "devDependencies": {
-        "@types/react": "^19.2.3",
+        "@types/react": "^19.2.14",
         "@types/react-color": "^3.0.6",
         "@types/react-dom": "^19.2.3",
         "@types/react-syntax-highlighter": "^15.5.10",

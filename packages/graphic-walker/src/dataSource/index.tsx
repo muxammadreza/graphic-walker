@@ -14,7 +14,7 @@ import { GWGlobalConfig } from '../vis/theme';
 import { composeContext } from '../utils/context';
 import { portalContainerContext, themeContext, vegaThemeContext } from '../store/theme';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface DSSegmentProps {
     commonStore: CommonStore;
@@ -92,13 +92,11 @@ const DataSourceSegment: React.FC<DSSegmentProps> = observer((props) => {
                 }}
                 open={showDSPanel}
             >
-                <DialogContent data-testid="create-datasource-dialog" aria-describedby="datasource-dialog-description">
+                <DialogContent data-testid="create-datasource-dialog">
                     <DialogHeader>
                         <DialogTitle>{t('DataSource.dialog.create_data_source')}</DialogTitle>
+                        <DialogDescription>{t('DataSource.dialog.create_data_source')}</DialogDescription>
                     </DialogHeader>
-                    <div id="datasource-dialog-description" className="sr-only">
-                        {t('DataSource.dialog.create_data_source')}
-                    </div>
                     <DataSelection commonStore={commonStore} />
                 </DialogContent>
             </Dialog>

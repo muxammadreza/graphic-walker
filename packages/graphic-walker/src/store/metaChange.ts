@@ -19,8 +19,11 @@ export function hasMetaChanged(previousMeta: IMutField[], nextMeta: IMutField[])
         return true;
     }
 
-    for (let i = 0; i < previousMeta.length; i += 1) {
-        if (fieldSignature(previousMeta[i]) !== fieldSignature(nextMeta[i])) {
+    const previousSignatures = previousMeta.map(fieldSignature).sort();
+    const nextSignatures = nextMeta.map(fieldSignature).sort();
+
+    for (let i = 0; i < previousSignatures.length; i += 1) {
+        if (previousSignatures[i] !== nextSignatures[i]) {
             return true;
         }
     }

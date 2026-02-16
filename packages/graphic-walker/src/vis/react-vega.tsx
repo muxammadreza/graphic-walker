@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, forwardRef, useRef, useContext } from 'react';
-import embed from 'vega-embed';
+import embed, { type Result } from 'vega-embed';
 import { Subject, Subscription } from 'rxjs';
 import * as op from 'rxjs/operators';
 import { expressionFunction, type ScenegraphEvent } from 'vega';
@@ -66,6 +66,7 @@ export interface IReactVegaHandler {
     downloadPNG: (filename?: string) => Promise<string[]>;
 }
 interface ReactVegaProps {
+    instanceID: string;
     name?: string;
     rows: Readonly<IViewField[]>;
     columns: Readonly<IViewField[]>;
@@ -125,6 +126,7 @@ const leastOne = (x: number) => Math.max(x, 1);
 
 const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVega(props, ref) {
     const {
+        instanceID,
         name,
         dataSource = [],
         rows = [],
@@ -301,6 +303,26 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
 
     // Render
     useEffect(() => {
+        const cleanupCallbacks: Array<() => void> = [];
+        const embeddedResults: Result[] = [];
+        const cleanupEmbeddedViews = () => {
+            cleanupCallbacks.splice(0).forEach((dispose) => {
+                try {
+                    dispose();
+                } catch (error) {
+                    console.warn('Failed to dispose Vega listener', error);
+                }
+            });
+            embeddedResults.splice(0).forEach((result) => {
+                try {
+                    result.finalize();
+                } catch (error) {
+                    console.warn('Failed to finalize Vega view', error);
+                }
+            });
+            serpentineViewService.setView(instanceID, null);
+        };
+
         props.onReportSpec?.(
             JSON.stringify(
                 specs.map((x) => ({
@@ -325,6 +347,7 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
                         theme: mediaTheme,
                     },
                 }).then((res) => {
+                    embeddedResults.push(res);
                     const container = res.view.container();
                     const canvas = container?.querySelector('canvas') ?? container?.querySelector('svg') ?? null;
 
@@ -385,17 +408,25 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
 
                     // Register serpentine view for direct signal updates
                     if (geomType === 'serpentine') {
-                        serpentineViewService.setView(res.view);
+                        serpentineViewService.setView(instanceID, res.view);
                     }
 
                     try {
-                        res.view.addEventListener('click', (e) => {
+                        const clickListener = (e: ScenegraphEvent) => {
                             click$.next(e);
+                        };
+                        res.view.addEventListener('click', clickListener);
+                        cleanupCallbacks.push(() => {
+                            res.view.removeEventListener('click', clickListener);
                         });
                         // boxplot don't support selection
                         if (geomType !== 'boxplot') {
-                            res.view.addSignalListener(SELECTION_NAME, (name: any, values: any) => {
+                            const selectionListener = (_name: string, values: unknown) => {
                                 selection$.next(values);
+                            };
+                            res.view.addSignalListener(SELECTION_NAME, selectionListener);
+                            cleanupCallbacks.push(() => {
+                                res.view.removeSignalListener(SELECTION_NAME, selectionListener);
                             });
                         }
                     } catch (error) {
@@ -436,6 +467,7 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
                                 theme: mediaTheme,
                             },
                         }).then((res) => {
+                            embeddedResults.push(res);
                             const container = res.view.container();
                             const canvas = container?.querySelector('canvas') ?? container?.querySelector('svg') ?? null;
 
@@ -504,7 +536,7 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
                             try {
                                 for (const param of paramStores) {
                                     let noBroadcasting = false;
-                                    res.view.addSignalListener(param, (name) => {
+                                    const paramListener = (name: string) => {
                                         if (noBroadcasting) {
                                             noBroadcasting = false;
                                             return;
@@ -520,6 +552,10 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
                                                 data: data ?? null,
                                             });
                                         }
+                                    };
+                                    res.view.addSignalListener(param, paramListener);
+                                    cleanupCallbacks.push(() => {
+                                        res.view.removeSignalListener(param, paramListener);
                                     });
                                     subscribe((entry) => {
                                         if (entry.source === sourceId || !entry.data) {
@@ -537,18 +573,31 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
                                 console.warn('Crossing filter failed', error);
                             }
                             try {
-                                res.view.addEventListener('mouseover', () => {
+                                const mouseOverListener = () => {
                                     if (sourceId !== crossFilterTriggerIdx) {
                                         setCrossFilterTriggerIdx(sourceId);
                                     }
+                                };
+                                res.view.addEventListener('mouseover', mouseOverListener);
+                                cleanupCallbacks.push(() => {
+                                    res.view.removeEventListener('mouseover', mouseOverListener);
                                 });
-                                res.view.addEventListener('click', (e) => {
+
+                                const clickListener = (e: ScenegraphEvent) => {
                                     click$.next(e);
+                                };
+                                res.view.addEventListener('click', clickListener);
+                                cleanupCallbacks.push(() => {
+                                    res.view.removeEventListener('click', clickListener);
                                 });
                                 // boxplot don't support selection
                                 if (geomType !== 'boxplot') {
-                                    res.view.addSignalListener(SELECTION_NAME, (name: any, values: any) => {
+                                    const selectionListener = (_name: string, values: unknown) => {
                                         selection$.next(values);
+                                    };
+                                    res.view.addSignalListener(SELECTION_NAME, selectionListener);
+                                    cleanupCallbacks.push(() => {
+                                        res.view.removeSignalListener(SELECTION_NAME, selectionListener);
                                     });
                                 }
                             } catch (error) {
@@ -562,14 +611,16 @@ const ReactVega = forwardRef<IReactVegaHandler, ReactVegaProps>(function ReactVe
             return () => {
                 subscriptions.forEach((sub) => sub.unsubscribe());
                 props.onReportSpec?.('');
+                cleanupEmbeddedViews();
             };
         }
         return () => {
+            cleanupEmbeddedViews();
             vegaRefs.current = [];
             renderTaskRefs.current = [];
             props.onReportSpec?.('');
         };
-    }, [specs, viewPlaceholders, showActions, vegaConfig, useSvg, locale]);
+    }, [instanceID, specs, viewPlaceholders, showActions, vegaConfig, useSvg, locale]);
 
     const containerRef = useRef<HTMLDivElement>(null);
 

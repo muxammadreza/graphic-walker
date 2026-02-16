@@ -42,6 +42,7 @@ import {
     FieldIdentifier,
 } from '../interfaces';
 import { GLOBAL_CONFIG } from '../config';
+import { GW_EDIT_EVENT, GW_VISUAL_CONFIG_CHANGED_EVENT } from '../events';
 import { COUNT_FIELD_ID, DATE_TIME_DRILL_LEVELS, DATE_TIME_FEATURE_LEVELS, PAINT_FIELD_ID, MEA_KEY_ID, MEA_VAL_ID } from '../constants';
 
 import { toWorkflow } from '../utils/workflow';
@@ -116,7 +117,7 @@ export class VizSpecStore {
             () => this.currentVis,
             () => {
                 document.dispatchEvent(
-                    new CustomEvent('edit-graphic-walker', {
+                    new CustomEvent(GW_EDIT_EVENT, {
                         detail: {
                             spec: this.currentVis,
                             instanceID: this.instanceID,
@@ -520,7 +521,7 @@ export class VizSpecStore {
         // the full chart update pipeline. Plugins can listen to this event to save
         // config changes without re-rendering the entire visualization.
         document.dispatchEvent(
-            new CustomEvent('visual-config-changed', {
+            new CustomEvent(GW_VISUAL_CONFIG_CHANGED_EVENT, {
                 detail: {
                     configKey: key,
                     configValue: value,

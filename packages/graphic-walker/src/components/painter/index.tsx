@@ -19,7 +19,7 @@ import { GWGlobalConfig, builtInThemes } from '../../vis/theme';
 import { unstable_batchedUpdates } from 'react-dom';
 import { autoMark } from '../../vis/spec/mark';
 import { Button } from '../ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Slider } from '../ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { uiThemeContext, themeContext } from '@/store/theme';
@@ -56,7 +56,6 @@ class WebGLRendererWrapper extends (Renderer as any) {
     _canvas: any;
 
     constructor(loader: any) {
-        console.log('WebGLRendererWrapper constructor called');
         super(loader); // Call ES6 super constructor
         // Initialize properties that WebGLRenderer would have set
         this._redraw = false;
@@ -80,19 +79,8 @@ Object.getOwnPropertyNames(ES5WebGLRenderer.prototype).forEach((name) => {
     }
 });
 
-// Wrap initialize to add logging
-const originalInitialize = WebGLRendererWrapper.prototype.initialize;
-WebGLRendererWrapper.prototype.initialize = function (el: any, width: any, height: any, origin: any) {
-    console.log('VERSION CHECK: Painter 1.0');
-    console.log('WebGLRendererWrapper initialize called', { el, width, height, origin });
-    const result = originalInitialize.call(this, el, width, height, origin);
-    console.log('WebGLRendererWrapper initialize result', { canvas: this._canvas });
-    return result;
-};
-
 // vega.renderModule('webgl', { handler: CanvasHandler, renderer: WebGLRendererWrapper as any });
 // vega.renderModule('webgl', { handler: CanvasHandler, renderer: WebGLRendererWrapper as any });
-console.log('Painter: Registering WebGLRendererWrapper via vega.renderModule');
 vega.renderModule('webgl', { handler: CanvasHandler, renderer: WebGLRendererWrapper as any });
 
 const MAGIC_PADDING = 5;
@@ -403,8 +391,6 @@ const AggPainterContent = (props: {
                     c.field = getMeaAggKey(targetField.fid, targetField.aggName);
                 }
             });
-            console.log('Painter Spec:', spec);
-            console.log('Painter Spec JSON:', JSON.stringify(spec));
             embed(containerRef.current, spec, {
                 renderer: 'webgl' as any,
                 config: props.vegaConfig,
@@ -1231,13 +1217,11 @@ const Painter = ({ themeConfig, themeKey }: { themeConfig?: GWGlobalConfig; them
                 vizStore.setShowPainter(false);
             }}
         >
-            <DialogContent data-testid="painter-dialog" aria-describedby="painter-description">
+            <DialogContent data-testid="painter-dialog">
                 <DialogHeader>
                     <DialogTitle>{t('main.tabpanel.settings.paint.title') || 'Paint Editor'}</DialogTitle>
+                    <DialogDescription>{t('main.tabpanel.settings.paint.description') || 'Edit your paint map using the brush tools'}</DialogDescription>
                 </DialogHeader>
-                <div id="painter-description" className="sr-only">
-                    {t('main.tabpanel.settings.paint.description') || 'Edit your paint map using the brush tools'}
-                </div>
                 {loading && <LoadingLayer />}
                 {!loading && !aggInfo && (
                     <PainterContent

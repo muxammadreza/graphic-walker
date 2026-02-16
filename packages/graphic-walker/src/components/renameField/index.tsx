@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useVizStore } from '../../store';
 import { useTranslation } from 'react-i18next';
 import { ICreateField } from '../../interfaces';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -21,12 +21,13 @@ const RenamePanel: React.FC = (props) => {
 
     return (
         <Dialog open={showRenamePanel} onOpenChange={() => vizStore.setShowRenamePanel(false)}>
-            <DialogContent className="!w-fit" data-testid="rename-field-dialog" aria-describedby="rename-field-description">
+            <DialogContent className="!w-fit" data-testid="rename-field-dialog">
                 <DialogHeader>
                     <DialogTitle>Rename Field</DialogTitle>
+                    <DialogDescription>This action will rename this field's name in the chart.</DialogDescription>
                 </DialogHeader>
                 <div className="flex flex-col justify-center items-start text-xs">
-                    <p id="rename-field-description" className="font-normal text-muted-foreground">
+                    <p className="font-normal text-muted-foreground">
                         This action will rename this field's name in the chart.
                     </p>
                     <div className="flex items-center space-x-2 mt-2">

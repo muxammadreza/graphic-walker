@@ -2,38 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useVizStore } from '../../store';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { toVegaSimplifiedWithAggergation } from '@/models/chat';
-
-const syntaxHighlight = (json: any) => {
-    if (typeof json != 'string') {
-        json = JSON.stringify(json, undefined, 4);
-    }
-    json = json
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/\n/g, '<br>')
-        .replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
-        .replace(/\s/g, '&nbsp;');
-    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-        var cls = 'text-sky-500'; // number
-        if (/^"/.test(match)) {
-            if (/:$/.test(match)) {
-                cls = 'text-purple-500'; // key
-            } else {
-                cls = 'text-emerald-500'; // string
-            }
-        } else if (/true|false/.test(match)) {
-            cls = 'text-blue-500';
-        } else if (/null/.test(match)) {
-            cls = 'text-sky-500';
-        }
-        return '<span class="' + cls + '">' + match + '</span>';
-    });
-};
+import { syntaxHighlightSegments } from '@/utils/syntaxHighlight';
 
 const CodeExport: React.FC = observer((props) => {
     const vizStore = useVizStore();
@@ -83,13 +56,11 @@ const CodeExport: React.FC = observer((props) => {
                 vizStore.setShowCodeExportPanel(false);
             }}
         >
-            <DialogContent data-testid="code-export-dialog" aria-describedby="code-export-description">
+            <DialogContent data-testid="code-export-dialog">
                 <DialogHeader>
                     <DialogTitle>Code Export</DialogTitle>
+                    <DialogDescription>Export and copy the visualization code in different formats.</DialogDescription>
                 </DialogHeader>
-                <div id="code-export-description" className="sr-only">
-                    Export and copy the visualization code in different formats
-                </div>
                 <Tabs value={tabKey} onValueChange={setTabKey}>
                     <TabsList className="my-1">
                         {specTabs.map((tab) => (
@@ -99,9 +70,13 @@ const CodeExport: React.FC = observer((props) => {
                         ))}
                     </TabsList>
                     <div className="border rounded-md overflow-hidden">
-                        <div className="text-sm px-6 max-h-96 overflow-auto ">
-                            <code dangerouslySetInnerHTML={{ __html: syntaxHighlight(code) }} />
-                        </div>
+                        <pre className="text-sm px-6 py-3 max-h-96 overflow-auto whitespace-pre-wrap break-all" data-testid="code-export-content">
+                            {syntaxHighlightSegments(code).map((segment, index) => (
+                                <span key={index} className={segment.className}>
+                                    {segment.text}
+                                </span>
+                            ))}
+                        </pre>
                     </div>
                 </Tabs>
                 <DialogFooter className="mt-2">

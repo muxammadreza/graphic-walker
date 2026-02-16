@@ -2,7 +2,7 @@ import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { useVizStore } from '../store';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from './ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 
 const RemoveConfirm = observer(function RemoveConfirm() {
@@ -11,8 +11,11 @@ const RemoveConfirm = observer(function RemoveConfirm() {
     const viz = useVizStore();
     return (
         <Dialog onOpenChange={() => viz.closeRemoveConfirmModal()} open={viz.removeConfirmIdx !== null}>
-            <DialogContent data-testid="remove-confirm-dialog" aria-labelledby="remove-confirm-title" aria-describedby="remove-confirm-description">
-                <DialogHeader id="remove-confirm-title">{t('main.tablist.remove_confirm')}</DialogHeader>
+            <DialogContent data-testid="remove-confirm-dialog">
+                <DialogHeader>
+                    <DialogTitle>{t('main.tablist.remove_confirm')}</DialogTitle>
+                    <DialogDescription>{t('main.tablist.remove_confirm')}</DialogDescription>
+                </DialogHeader>
                 <DialogFooter className="mt-4">
                     <Button
                         variant="outline"

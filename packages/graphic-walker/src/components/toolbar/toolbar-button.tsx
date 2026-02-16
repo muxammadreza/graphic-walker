@@ -18,6 +18,7 @@ const ToolbarButton = memo<IToolbarProps<ToolbarButtonItem>>(function ToolbarBut
                 <a
                     href={href}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className={buttonVariants({ variant: 'none', size: 'toolbar' })}
                     aria-disabled={disabled}
                     data-testid={`toolbar-${item.key}`}

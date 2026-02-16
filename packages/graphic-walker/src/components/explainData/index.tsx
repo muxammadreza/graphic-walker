@@ -1,16 +1,18 @@
-import React, { useEffect, useState, useRef, useMemo, useContext } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useCompututaion, useVizStore } from '../../store';
-import { useTranslation } from 'react-i18next';
-import { getMeaAggKey } from '../../utils';
 import styled from 'styled-components';
-import embed from 'vega-embed';
-import { VegaGlobalConfig, IDarkMode, IThemeKey, IField, IRow, IPredicate } from '../../interfaces';
+import embed, { type Result } from 'vega-embed';
+import type { TopLevelSpec } from 'vega-lite';
+import { VegaGlobalConfig, IThemeKey, IField, IRow } from '../../interfaces';
 import { builtInThemes } from '../../vis/theme';
-import { explainBySelection } from '../../lib/insights/explainBySelection';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { explainBySelection, type ExplainBySelectionResult } from '../../lib/insights/explainBySelection';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import LoadingLayer from '../loadingLayer';
 import { themeContext } from '@/store/theme';
+import { Button } from '../ui/button';
+import { debugWarn } from '../../utils/debug';
+import { buildExplainPredicates, buildSelectionContext, resolveSelectionValue, type ISelectionContext } from './selection';
 
 const Container = styled.div`
     height: 50vh;
@@ -33,14 +35,38 @@ const Tab = styled.div`
     cursor: pointer;
 `;
 
-const getCategoryName = (row: IRow, field: IField) => {
+type ExplainPanelStatus = 'idle' | 'loading' | 'ready' | 'empty' | 'error';
+
+const getCategoryName = (row: IRow, field: IField): string => {
     if (field.semanticType === 'quantitative') {
-        let id = field.fid;
-        return `${row[id][0].toFixed(2)}-${row[id][1].toFixed(2)}`;
-    } else {
-        return row[field.fid];
+        const value = row[field.fid];
+        if (
+            Array.isArray(value) &&
+            value.length >= 2 &&
+            typeof value[0] === 'number' &&
+            typeof value[1] === 'number' &&
+            Number.isFinite(value[0]) &&
+            Number.isFinite(value[1])
+        ) {
+            return `${value[0].toFixed(2)}-${value[1].toFixed(2)}`;
+        }
+        return 'Unknown range';
     }
+
+    const value = row[field.fid];
+    if (value === undefined || value === null || value === '') {
+        return 'Unknown';
+    }
+    return String(value);
 };
+
+const EMPTY_SELECTION_MESSAGE = 'Select a mark with at least one valid dimension value to generate explanations.';
+const EMPTY_RESULT_MESSAGE = 'No explainable patterns were found for the selected context.';
+const INVALID_RENDER_DATA_MESSAGE = 'No valid numeric values are available to render this explanation.';
+const ERROR_MESSAGE = 'Unable to generate explanations right now. Please try again.';
+const EXPLAIN_CATEGORY_FIELD = '__gw_explain_category';
+const EXPLAIN_SCOPE_FIELD = '__gw_explain_scope';
+const isFiniteNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 
 const ExplainData: React.FC<{
     themeKey: IThemeKey;
@@ -50,168 +76,304 @@ const ExplainData: React.FC<{
     const computationFunction = useCompututaion();
     const { allFields, viewMeasures, viewDimensions, viewFilters, showInsightBoard, selectedMarkObject, config } = vizStore;
     const { timezoneDisplayOffset } = config;
-    const [explainDataInfoList, setExplainDataInfoList] = useState<
-        {
-            score: number;
-            measureField: IField;
-            targetField: IField;
-            normalizedData: IRow[];
-            normalizedParentData: IRow[];
-        }[]
-    >([]);
+    const [explainDataInfoList, setExplainDataInfoList] = useState<ExplainBySelectionResult[]>([]);
     const [selectedInfoIndex, setSelectedInfoIndex] = useState(0);
+    const [status, setStatus] = useState<ExplainPanelStatus>('idle');
+    const [statusMessage, setStatusMessage] = useState('');
+    const [selectionContext, setSelectionContext] = useState<ISelectionContext>({
+        matchedDimensions: 0,
+        totalDimensions: 0,
+        isPartialSelection: false,
+    });
+    const [refreshToken, setRefreshToken] = useState(0);
+
     const chartRef = useRef<HTMLDivElement>(null);
+    const embeddedChartRef = useRef<Result | null>(null);
+    const debounceTimerRef = useRef<number | null>(null);
+    const requestIdRef = useRef(0);
+
+    const clearRenderedChart = useCallback(() => {
+        if (embeddedChartRef.current) {
+            try {
+                embeddedChartRef.current.finalize();
+            } catch (error) {
+                debugWarn('Failed to finalize ExplainData chart', error);
+            } finally {
+                embeddedChartRef.current = null;
+            }
+        }
+
+        if (chartRef.current) {
+            chartRef.current.innerHTML = '';
+        }
+    }, []);
 
     const vegaConfig = useMemo<VegaGlobalConfig>(() => {
-        const config: VegaGlobalConfig = {
+        const nextConfig: VegaGlobalConfig = {
             ...builtInThemes[themeKey ?? 'vega']?.[dark],
         };
-        return config;
+        return nextConfig;
     }, [themeKey, dark]);
 
-    const { t } = useTranslation();
+    const selectionSignature = useMemo(() => {
+        return viewDimensions
+            .map((field) => {
+                const value = resolveSelectionValue(field, selectedMarkObject);
+                return `${field.fid}:${String(value ?? '')}`;
+            })
+            .join('|');
+    }, [viewDimensions, selectedMarkObject]);
 
-    const explain = async (predicates) => {
-        const explainInfoList = await explainBySelection({
-            predicates,
-            viewFilters,
-            allFields,
-            viewMeasures,
-            viewDimensions,
-            computationFunction,
-            timezoneDisplayOffset,
-        });
-        console.log('explainInfoList', explainInfoList);
-        setExplainDataInfoList(explainInfoList);
-    };
+    const retryExplain = useCallback(() => {
+        setRefreshToken((value) => value + 1);
+    }, []);
 
     useEffect(() => {
-        console.log('VERSION CHECK: ExplainData Index 1.0');
-        if (!showInsightBoard || Object.keys(selectedMarkObject).length === 0) return;
-        const predicates: IPredicate[] = viewDimensions.map((field) => {
-            // Fuzzy match to find the key
-            let value = selectedMarkObject[field.fid] ?? selectedMarkObject[field.name] ?? (field.basename ? selectedMarkObject[field.basename] : undefined);
-
-            if (value === undefined) {
-                const keys = Object.keys(selectedMarkObject);
-                const matchKey = keys.find(
-                    (k) =>
-                        k === field.fid ||
-                        k === field.name ||
-                        k === field.basename ||
-                        k.replace(/\\/g, '') === field.fid || // Handle escaped backslashes
-                        k.endsWith(`.${field.name}`) ||
-                        k.endsWith(`.${field.basename}`),
-                );
-                if (matchKey) {
-                    value = selectedMarkObject[matchKey];
-                    console.log(`ExplainData: Fuzzy matched key '${matchKey}' for field '${field.fid}'`);
-                }
-            }
-
-            console.warn('ExplainData Key Debug:', {
-                fid: field.fid,
-                value,
-                keysJSON: JSON.stringify(Object.keys(selectedMarkObject)),
-                fullObjectJSON: JSON.stringify(selectedMarkObject),
+        if (!showInsightBoard) {
+            setStatus('idle');
+            setStatusMessage('');
+            setExplainDataInfoList([]);
+            setSelectionContext({
+                matchedDimensions: 0,
+                totalDimensions: viewDimensions.length,
+                isPartialSelection: false,
             });
-
-            return {
-                key: field.fid,
-                type: 'discrete',
-                range: new Set([value]),
-            } as IPredicate;
-        });
-        console.warn('ExplainData index.tsx Debug:', { selectedMarkObject, predicates, viewDimensions });
-        explain(predicates);
-    }, [viewMeasures, viewDimensions, showInsightBoard, selectedMarkObject]);
-
-    useEffect(() => {
-        if (chartRef.current && explainDataInfoList.length > 0) {
-            const { normalizedData, normalizedParentData, targetField, measureField } = explainDataInfoList[selectedInfoIndex];
-            const { semanticType: targetType, name: targetName, fid: targetId } = targetField;
-            const data = [
-                ...normalizedData.map((row) => ({
-                    category: getCategoryName(row, targetField),
-                    ...row,
-                    type: 'child',
-                })),
-                ...normalizedParentData.map((row) => ({
-                    category: getCategoryName(row, targetField),
-                    ...row,
-                    type: 'parent',
-                })),
-            ];
-            const xField = {
-                x: {
-                    field: 'category',
-                    type: targetType === 'quantitative' ? 'ordinal' : targetType,
-                    axis: {
-                        title: `Distribution of Values for ${targetName}`,
-                    },
-                },
-            };
-            const spec: any = {
-                data: {
-                    values: data,
-                },
-                width: 320,
-                height: 200,
-                encoding: {
-                    ...xField,
-                    color: {
-                        legend: {
-                            orient: 'bottom',
-                        },
-                    },
-                },
-                layer: [
-                    {
-                        mark: {
-                            type: 'bar',
-                            width: 15,
-                            opacity: 0.7,
-                        },
-                        encoding: {
-                            y: {
-                                field: getMeaAggKey(measureField.fid, measureField.aggName),
-                                type: 'quantitative',
-                                title: `${measureField.aggName} ${measureField.name} for All Marks`,
-                            },
-                            color: { datum: 'All Marks' },
-                        },
-                        transform: [{ filter: "datum.type === 'parent'" }],
-                    },
-                    {
-                        mark: {
-                            type: 'bar',
-                            width: 10,
-                            opacity: 0.7,
-                        },
-                        encoding: {
-                            y: {
-                                field: getMeaAggKey(measureField.fid, measureField.aggName),
-                                type: 'quantitative',
-                                title: `${measureField.aggName} ${measureField.name} for Selected Mark`,
-                            },
-                            color: { datum: 'Selected Mark' },
-                        },
-                        transform: [{ filter: "datum.type === 'child'" }],
-                    },
-                ],
-                resolve: { scale: { y: 'independent' } },
-            };
-
-            embed(chartRef.current, spec, {
-                mode: 'vega-lite',
-                actions: false,
-                config: vegaConfig,
-                tooltip: {
-                    theme: dark,
-                },
-            });
+            setSelectedInfoIndex(0);
+            clearRenderedChart();
+            return;
         }
-    }, [explainDataInfoList, chartRef.current, selectedInfoIndex, vegaConfig]);
+
+        const predicates = buildExplainPredicates(viewDimensions, selectedMarkObject);
+        const context = buildSelectionContext(viewDimensions, predicates);
+        setSelectionContext(context);
+
+        if (debounceTimerRef.current !== null) {
+            window.clearTimeout(debounceTimerRef.current);
+            debounceTimerRef.current = null;
+        }
+
+        requestIdRef.current += 1;
+        const requestId = requestIdRef.current;
+
+        if (predicates.length === 0) {
+            setExplainDataInfoList([]);
+            setStatus('empty');
+            setStatusMessage(EMPTY_SELECTION_MESSAGE);
+            setSelectedInfoIndex(0);
+            return;
+        }
+
+        setStatus('loading');
+        setStatusMessage('');
+
+        debounceTimerRef.current = window.setTimeout(() => {
+            void explainBySelection({
+                predicates,
+                viewFilters,
+                allFields,
+                viewMeasures,
+                viewDimensions,
+                computationFunction,
+                timezoneDisplayOffset,
+            })
+                .then((explainInfoList) => {
+                    if (requestId !== requestIdRef.current) {
+                        return;
+                    }
+
+                    setSelectedInfoIndex(0);
+                    setExplainDataInfoList(explainInfoList);
+
+                    if (explainInfoList.length === 0) {
+                        setStatus('empty');
+                        setStatusMessage(EMPTY_RESULT_MESSAGE);
+                        return;
+                    }
+
+                    setStatus('ready');
+                })
+                .catch((error) => {
+                    if (requestId !== requestIdRef.current) {
+                        return;
+                    }
+
+                    console.error('ExplainData query failed', error);
+                    setExplainDataInfoList([]);
+                    setStatus('error');
+                    setStatusMessage(ERROR_MESSAGE);
+                });
+        }, 120);
+
+        return () => {
+            if (debounceTimerRef.current !== null) {
+                window.clearTimeout(debounceTimerRef.current);
+                debounceTimerRef.current = null;
+            }
+        };
+    }, [
+        showInsightBoard,
+        selectionSignature,
+        refreshToken,
+        viewFilters,
+        allFields,
+        viewMeasures,
+        viewDimensions,
+        computationFunction,
+        timezoneDisplayOffset,
+        selectedMarkObject,
+        clearRenderedChart,
+    ]);
+
+    useEffect(() => {
+        if (selectedInfoIndex >= explainDataInfoList.length) {
+            setSelectedInfoIndex(0);
+        }
+    }, [selectedInfoIndex, explainDataInfoList.length]);
+
+    useEffect(() => {
+        if (status !== 'ready' || !chartRef.current) {
+            clearRenderedChart();
+            return;
+        }
+
+        const selectedInfo = explainDataInfoList[selectedInfoIndex];
+        if (!selectedInfo) {
+            setStatus('empty');
+            setStatusMessage(EMPTY_RESULT_MESSAGE);
+            return;
+        }
+
+        const { normalizedData, normalizedParentData, targetField, measureField, measureKey } = selectedInfo;
+
+        // Vega warns about infinite extents when a layer has only non-finite values.
+        // Keep only rows with finite measures and require both layers to be renderable.
+        const childRows = normalizedData.filter((row) => isFiniteNumber(row[measureKey]));
+        const parentRows = normalizedParentData.filter((row) => isFiniteNumber(row[measureKey]));
+        if (childRows.length === 0 || parentRows.length === 0) {
+            setStatus('empty');
+            setStatusMessage(INVALID_RENDER_DATA_MESSAGE);
+            clearRenderedChart();
+            return;
+        }
+
+        const data = [
+            ...childRows.map((row) => ({
+                ...row,
+                [EXPLAIN_CATEGORY_FIELD]: getCategoryName(row, targetField),
+                [EXPLAIN_SCOPE_FIELD]: 'child',
+            })),
+            ...parentRows.map((row) => ({
+                ...row,
+                [EXPLAIN_CATEGORY_FIELD]: getCategoryName(row, targetField),
+                [EXPLAIN_SCOPE_FIELD]: 'parent',
+            })),
+        ];
+
+        const { semanticType: targetType, name: targetName } = targetField;
+        const xField = {
+            x: {
+                field: EXPLAIN_CATEGORY_FIELD,
+                type: targetType === 'quantitative' ? 'ordinal' : targetType,
+                axis: {
+                    title: `Distribution of Values for ${targetName}`,
+                },
+            },
+        };
+
+        const spec: TopLevelSpec = {
+            data: {
+                values: data,
+            },
+            width: 320,
+            height: 200,
+            encoding: {
+                ...xField,
+                color: {
+                    legend: {
+                        orient: 'bottom',
+                    },
+                },
+            },
+            layer: [
+                {
+                    mark: {
+                        type: 'bar',
+                        width: 15,
+                        opacity: 0.7,
+                    },
+                    encoding: {
+                        y: {
+                            field: measureKey,
+                            type: 'quantitative',
+                            title: `${measureField.aggName} ${measureField.name} for All Marks`,
+                        },
+                        color: { datum: 'All Marks' },
+                    },
+                    transform: [{ filter: `datum.${EXPLAIN_SCOPE_FIELD} === 'parent'` }],
+                },
+                {
+                    mark: {
+                        type: 'bar',
+                        width: 10,
+                        opacity: 0.7,
+                    },
+                    encoding: {
+                        y: {
+                            field: measureKey,
+                            type: 'quantitative',
+                            title: `${measureField.aggName} ${measureField.name} for Selected Mark`,
+                        },
+                        color: { datum: 'Selected Mark' },
+                    },
+                    transform: [{ filter: `datum.${EXPLAIN_SCOPE_FIELD} === 'child'` }],
+                },
+            ],
+            resolve: { scale: { y: 'independent' } },
+        };
+
+        clearRenderedChart();
+
+        let isDisposed = false;
+        void embed(chartRef.current, spec, {
+            mode: 'vega-lite',
+            actions: false,
+            config: vegaConfig,
+            tooltip: {
+                theme: dark,
+            },
+        })
+            .then((result) => {
+                if (isDisposed) {
+                    result.finalize();
+                    return;
+                }
+                embeddedChartRef.current = result;
+            })
+            .catch((error) => {
+                if (isDisposed) {
+                    return;
+                }
+                console.error('Failed to render ExplainData chart', error);
+                setStatus('error');
+                setStatusMessage(ERROR_MESSAGE);
+            });
+
+        return () => {
+            isDisposed = true;
+            clearRenderedChart();
+        };
+    }, [status, explainDataInfoList, selectedInfoIndex, vegaConfig, dark, clearRenderedChart]);
+
+    useEffect(() => {
+        return () => {
+            if (debounceTimerRef.current !== null) {
+                window.clearTimeout(debounceTimerRef.current);
+                debounceTimerRef.current = null;
+            }
+            requestIdRef.current += 1;
+            clearRenderedChart();
+        };
+    }, [clearRenderedChart]);
 
     return (
         <Dialog
@@ -221,28 +383,49 @@ const ExplainData: React.FC<{
                 setSelectedInfoIndex(0);
             }}
         >
-            <DialogContent data-testid="explain-data-dialog" aria-describedby="explain-data-description">
+            <DialogContent data-testid="explain-data-dialog">
                 <DialogHeader>
                     <DialogTitle>Explain Data</DialogTitle>
+                    <DialogDescription>
+                        Explore data insights and explanations for the selected mark.
+                    </DialogDescription>
                 </DialogHeader>
-                <div id="explain-data-description" className="sr-only">
-                    Explore data insights and explanations for the selected mark
-                </div>
-                {explainDataInfoList.length === 0 && <LoadingLayer />}
-                <Container className="grid grid-cols-4">
-                    <TabsList className="col-span-1">
-                        {explainDataInfoList.map((option, i) => {
-                            return (
-                                <Tab key={i} className={`${selectedInfoIndex === i ? 'border-primary' : ''} text-xs`} onClick={() => setSelectedInfoIndex(i)}>
-                                    {option.targetField.name} {option.score.toFixed(2)}
-                                </Tab>
-                            );
-                        })}
-                    </TabsList>
-                    <div className="col-span-3 text-center overflow-y-scroll">
-                        <div ref={chartRef}></div>
+
+                {selectionContext.isPartialSelection && (
+                    <div className="text-xs text-muted-foreground px-1">
+                        Partial selection context: matched {selectionContext.matchedDimensions} of {selectionContext.totalDimensions} dimensions.
                     </div>
-                </Container>
+                )}
+
+                {status === 'loading' && <LoadingLayer />}
+
+                {(status === 'empty' || status === 'error') && (
+                    <div className="p-4 border rounded-md text-sm flex flex-col gap-3" data-testid="explain-data-empty-state">
+                        <div>{statusMessage}</div>
+                        <div>
+                            <Button variant="outline" onClick={retryExplain}>
+                                Retry
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
+                {status === 'ready' && (
+                    <Container className="grid grid-cols-4">
+                        <TabsList className="col-span-1">
+                            {explainDataInfoList.map((option, i) => {
+                                return (
+                                    <Tab key={i} className={`${selectedInfoIndex === i ? 'border-primary' : ''} text-xs`} onClick={() => setSelectedInfoIndex(i)}>
+                                        {option.targetField.name} {option.score.toFixed(2)}
+                                    </Tab>
+                                );
+                            })}
+                        </TabsList>
+                        <div className="col-span-3 text-center overflow-y-scroll">
+                            <div ref={chartRef}></div>
+                        </div>
+                    </Container>
+                )}
             </DialogContent>
         </Dialog>
     );

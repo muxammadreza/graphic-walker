@@ -3,12 +3,27 @@ import { VizSpecStore } from './visualSpecStore';
 import { IComputationFunction, IDefaultConfig, IMutField, IRow } from '../interfaces';
 import { hasMetaChanged, hasOnMetaChangeChanged } from './metaChange';
 
+const MAX_KEEP_ALIVE_STORES = 64;
+
 function createKeepAliveContext<T, U extends any[]>(create: (...args: U) => T) {
-    const dict: Record<string, T> = {};
+    const dict = new Map<string, T>();
     return (key?: string, ...args: U): T => {
         if (key) {
-            if (!dict[key]) dict[key] = create(...args);
-            return dict[key];
+            const existed = dict.get(key);
+            if (existed) {
+                return existed;
+            }
+
+            const created = create(...args);
+            dict.set(key, created);
+            if (dict.size > MAX_KEEP_ALIVE_STORES) {
+                const oldestKey = dict.keys().next().value;
+                if (oldestKey) {
+                    dict.delete(oldestKey);
+                }
+            }
+
+            return created;
         } else {
             return create(...args);
         }

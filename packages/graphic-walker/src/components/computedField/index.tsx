@@ -1,20 +1,12 @@
 import { observer } from 'mobx-react-lite';
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useVizStore } from '../../store';
 import { isNotEmpty, parseErrorMessage } from '../../utils';
 import { highlightField } from '../highlightField';
-import { aggFuncs, reservedKeywords, sqlFunctions } from '../../lib/sql';
-import { COUNT_FIELD_ID, MEA_KEY_ID, MEA_VAL_ID, PAINT_FIELD_ID } from '../../constants';
 import { unstable_batchedUpdates } from 'react-dom';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-
-const keywordRegex = new RegExp(`\\b(${Array.from(reservedKeywords).join('|')})\\b`, 'gi');
-const bulitInRegex = new RegExp(`\\b(${Array.from(sqlFunctions).join('|')})(\\s*)\\(`, 'gi');
-const aggBultinRegex = new RegExp(`\\b(${Array.from(aggFuncs).join('|')})(\\s*)\\(`, 'gi');
-
-const stringRegex = /('[^']*'?)/g;
 
 const ComputedFieldDialog: React.FC = observer(() => {
     const vizStore = useVizStore();
@@ -22,35 +14,10 @@ const ComputedFieldDialog: React.FC = observer(() => {
     const [name, setName] = useState<string>('');
     const [sql, setSql] = useState<string>('');
     const [error, setError] = useState<string>('');
-    const ref = useRef<HTMLDivElement>(null);
 
     const SQLField = useMemo(() => {
-        const fields = vizStore.allFields
-            .filter((x) => ![COUNT_FIELD_ID, MEA_KEY_ID, MEA_VAL_ID, PAINT_FIELD_ID].includes(x.fid))
-            .map((x) => x.name.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'))
-            .join('|');
-        const fieldRegex = fields.length > 0 ? new RegExp(`\\b(${fields})\\b`, 'gi') : null;
-        return highlightField((sql: string) => {
-            // highlight field
-            if (fieldRegex) {
-                sql = sql.replace(fieldRegex, '<span class="text-blue-700 dark:text-blue-600">$1</span>');
-            }
-
-            // highlight keyword
-            sql = sql.replace(keywordRegex, '<span class="text-fuchsia-700 dark:text-fuchsia-600">$1</span>');
-
-            // highlight function
-            sql = sql.replace(bulitInRegex, '<span class="text-yellow-700 dark:text-yellow-600">$1</span>$2(');
-
-            // highlight agg function
-            sql = sql.replace(aggBultinRegex, '<span class="text-amber-700 dark:text-amber-600">$1</span>$2(');
-
-            // highlight string
-            sql = sql.replace(stringRegex, '<span class="text-green-700 dark:text-green-600">$1</span>');
-
-            return sql;
-        });
-    }, [vizStore.allFields]);
+        return highlightField((value: string) => value);
+    }, []);
 
     useEffect(() => {
         if (isNotEmpty(editingComputedFieldFid)) {
@@ -64,7 +31,6 @@ const ComputedFieldDialog: React.FC = observer(() => {
                     setSql('');
                     setError('');
                 });
-                ref.current && (ref.current.innerHTML = '');
             } else {
                 const f = vizStore.allFields.find((x) => x.fid === editingComputedFieldFid);
                 if (!f || !f.computed || f.expression?.op !== 'expr') {
@@ -81,7 +47,6 @@ const ComputedFieldDialog: React.FC = observer(() => {
                     setSql(sql.value);
                     setError('');
                 });
-                ref.current && (ref.current.innerHTML = sql.value);
             }
         }
     }, [editingComputedFieldFid, vizStore]);
@@ -95,23 +60,22 @@ const ComputedFieldDialog: React.FC = observer(() => {
                 vizStore.setComputedFieldFid();
             }}
         >
-            <DialogContent data-testid="computed-field-dialog" aria-describedby="computed-field-description">
+            <DialogContent data-testid="computed-field-dialog">
                 <DialogHeader>
                     <DialogTitle>{editingComputedFieldFid === '' ? 'Add Computed Field' : 'Edit Computed Field'}</DialogTitle>
+                    <DialogDescription>
+                        Computed fields guide:{' '}
+                        <a
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline text-primary"
+                            href="https://github.com/Kanaries/graphic-walker/wiki/How-to-Create-Computed-field-in-Graphic-Walker"
+                        >
+                            read here
+                        </a>
+                    </DialogDescription>
                 </DialogHeader>
                 <div className="flex flex-col space-y-2">
-                    <div id="computed-field-description">
-                        <span className="text-xs text-muted-foreground">
-                            Computed fields guide:{' '}
-                            <a
-                                target="_blank"
-                                className="underline text-primary"
-                                href="https://github.com/Kanaries/graphic-walker/wiki/How-to-Create-Computed-field-in-Graphic-Walker"
-                            >
-                                read here
-                            </a>
-                        </span>
-                    </div>
                     <div className="flex flex-col space-y-2">
                         <label className="text-ml whitespace-nowrap">Name</label>
                         <Input
@@ -123,7 +87,7 @@ const ComputedFieldDialog: React.FC = observer(() => {
                             }}
                         />
                         <label className="text-ml whitespace-nowrap">SQL</label>
-                        <SQLField ref={ref} value={sql} onChange={setSql} placeholder="Enter SQL..." />
+                            <SQLField value={sql} onChange={setSql} placeholder="Enter SQL..." />
                     </div>
                     {error && <div className="text-xs text-red-500">{error}</div>}
                     <div className="flex justify-end space-x-2">

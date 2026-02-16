@@ -90,6 +90,7 @@ function UserMessage(props: { message: IUserChatMessage; onRemove?: () => void }
 
 const AssistantMessage = observer(function AssistantMessage(props: { message: IAssistantChatMessage; onRemove?: () => void; scales?: IChannelScales }) {
     const computation = useCompututaion();
+    const instanceIDRef = React.useRef(`chat-${Math.random().toString(36).slice(2)}`);
     const { config, encodings, layout, name } = props.message.chart;
     const { vizThemeConfig } = useContext(vegaThemeContext);
 
@@ -152,6 +153,7 @@ const AssistantMessage = observer(function AssistantMessage(props: { message: IA
             <CardContent className="pl-16">
                 {waiting && <LoadingLayer />}
                 <SpecRenderer
+                    instanceID={instanceIDRef.current}
                     vizThemeConfig={vizThemeConfig}
                     name={name}
                     data={data}

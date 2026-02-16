@@ -12,6 +12,7 @@ import { parseColorToHex } from '@/utils/colors';
 import ObservablePlotRenderer from '@/vis/observable-plot-renderer';
 
 interface SpecRendererProps {
+    instanceID: string;
     name?: string;
     vizThemeConfig?: IThemeKey | GWGlobalConfig;
     data: IRow[];
@@ -30,7 +31,7 @@ interface SpecRendererProps {
  * This is a pure component, which means it will not depend on any global state.
  */
 const SpecRenderer = forwardRef<IReactVegaHandler, SpecRendererProps>(function (
-    { name, layout, data, draggableFieldState, visualConfig, onGeomClick, onChartResize, locale, onReportSpec, vizThemeConfig, scales, disableCollapse },
+    { instanceID, name, layout, data, draggableFieldState, visualConfig, onGeomClick, onChartResize, locale, onReportSpec, vizThemeConfig, scales, disableCollapse },
     ref,
 ) {
     // const { draggableFieldState, visualConfig } = vizStore;
@@ -179,6 +180,7 @@ const SpecRenderer = forwardRef<IReactVegaHandler, SpecRendererProps>(function (
             )}
             {!isSpatial && (!layout.renderer || layout.renderer === 'vega-lite') && (
                 <ReactVega
+                    instanceID={instanceID}
                     name={name}
                     vegaConfig={vegaConfig}
                     // format={format}

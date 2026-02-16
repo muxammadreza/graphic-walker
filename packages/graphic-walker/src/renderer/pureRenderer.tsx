@@ -164,6 +164,7 @@ const PureRenderer = forwardRef<IReactVegaHandler, IPureRendererProps & (LocalPr
     const darkMode = useCurrentMediaTheme(appearance ?? dark);
     const [currentTheme, setCurrentTheme] = useState<IThemeKey | GWGlobalConfig>((vizThemeConfig ?? themeConfig ?? themeKey) as IThemeKey | GWGlobalConfig);
     const [portal, setPortal] = useState<HTMLDivElement | null>(null);
+    const instanceIDRef = useRef(`pure-${Math.random().toString(36).slice(2)}`);
 
     return (
         <ShadowDom style={sizeMode === 'full' ? { width: '100%', height: '100%' } : undefined} className={className} uiTheme={uiTheme ?? colorConfig}>
@@ -185,6 +186,7 @@ const PureRenderer = forwardRef<IReactVegaHandler, IPureRendererProps & (LocalPr
                     )}
                     {isSpatial || (
                         <SpecRenderer
+                            instanceID={instanceIDRef.current}
                             name={name}
                             data={viewData}
                             ref={ref}

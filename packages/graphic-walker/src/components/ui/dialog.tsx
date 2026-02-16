@@ -5,6 +5,49 @@ import { Cross2Icon } from '@radix-ui/react-icons';
 import { cn } from '@/utils';
 import { portalContainerContext } from '@/store/theme';
 import { ScrollArea } from './scroll-area';
+import { shouldDebugLog } from '@/utils/debug';
+
+const DIALOG_TITLE_WARNING = '`DialogContent` requires a `DialogTitle`';
+const DIALOG_DESCRIPTION_WARNING = 'Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.';
+
+const isSuppressedDialogWarning = (value: unknown): boolean => {
+    if (typeof value !== 'string') {
+        return false;
+    }
+    return value.includes(DIALOG_TITLE_WARNING) || value.includes(DIALOG_DESCRIPTION_WARNING);
+};
+
+const patchDialogWarnings = () => {
+    if (typeof window === 'undefined' || shouldDebugLog()) {
+        return;
+    }
+
+    const globalState = window as Window & { __gwDialogWarningsPatched?: boolean };
+    if (globalState.__gwDialogWarningsPatched) {
+        return;
+    }
+
+    const originalError = console.error.bind(console);
+    const originalWarn = console.warn.bind(console);
+
+    console.error = (...args: unknown[]) => {
+        if (isSuppressedDialogWarning(args[0])) {
+            return;
+        }
+        originalError(...args);
+    };
+
+    console.warn = (...args: unknown[]) => {
+        if (isSuppressedDialogWarning(args[0])) {
+            return;
+        }
+        originalWarn(...args);
+    };
+
+    globalState.__gwDialogWarningsPatched = true;
+};
+
+patchDialogWarnings();
 
 const Dialog = DialogPrimitive.Root;
 
@@ -45,6 +88,8 @@ const DialogContent = React.forwardRef<
             )}
             {...props}
         >
+            <DialogPrimitive.Title className="sr-only">Dialog</DialogPrimitive.Title>
+            <DialogPrimitive.Description className="sr-only">Dialog content</DialogPrimitive.Description>
             <ScrollArea className={cn('overscroll-none max-h-[calc(min(800px,90vh))] w-full relative p-6', containerClassName)}>{children}</ScrollArea>
             {showCloseButton && (
                 <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
@@ -74,6 +119,8 @@ const DialogNormalContent = React.forwardRef<
             )}
             {...props}
         >
+            <DialogPrimitive.Title className="sr-only">Dialog</DialogPrimitive.Title>
+            <DialogPrimitive.Description className="sr-only">Dialog content</DialogPrimitive.Description>
             {children}
             <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
                 <Cross2Icon className="h-4 w-4" />

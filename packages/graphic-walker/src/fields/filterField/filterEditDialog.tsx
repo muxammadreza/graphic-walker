@@ -10,7 +10,7 @@ import { GLOBAL_CONFIG } from '../../config';
 import { toWorkflow } from '../../utils/workflow';
 import { useRefControledState } from '../../hooks';
 import { getFilterMeaAggKey, getMeaAggKey } from '../../utils';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
 const aggregationList = GLOBAL_CONFIG.AGGREGATOR_LIST.map(
@@ -90,13 +90,11 @@ export const PureFilterEditDialog = (props: {
 
     return uncontrolledField ? (
         <Dialog open={Boolean(uncontrolledField)} onOpenChange={onClose}>
-            <DialogContent data-testid="filter-edit-dialog" aria-describedby="filter-dialog-description">
+            <DialogContent data-testid="filter-edit-dialog">
                 <DialogHeader>
-                    <DialogTitle id="filter-dialog-title">{t('editing')}</DialogTitle>
+                    <DialogTitle>{t('editing')}</DialogTitle>
+                    <DialogDescription>{t('editing')}</DialogDescription>
                 </DialogHeader>
-                <div id="filter-dialog-description" className="sr-only">
-                    {t('editing')}
-                </div>
                 <div className="pt-4 text-xs">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
