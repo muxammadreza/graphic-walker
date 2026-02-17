@@ -1,17 +1,18 @@
+import { afterEach, describe, expect, it, vi } from 'bun:test';
 import { serpentineViewService } from './serpentineViewService';
 
 type MockView = {
-    signal: jest.Mock;
-    runAsync: jest.Mock;
-    addSignalListener: jest.Mock;
-    removeSignalListener: jest.Mock;
+    signal: ReturnType<typeof vi.fn>;
+    runAsync: ReturnType<typeof vi.fn>;
+    addSignalListener: ReturnType<typeof vi.fn>;
+    removeSignalListener: ReturnType<typeof vi.fn>;
 };
 
 const makeView = (): MockView => ({
-    signal: jest.fn(),
-    runAsync: jest.fn(),
-    addSignalListener: jest.fn(),
-    removeSignalListener: jest.fn(),
+    signal: vi.fn(),
+    runAsync: vi.fn(),
+    addSignalListener: vi.fn(),
+    removeSignalListener: vi.fn(),
 });
 
 describe('serpentineViewService', () => {
@@ -46,7 +47,7 @@ describe('serpentineViewService', () => {
     });
 
     it('adds and removes listeners only on targeted instance view', () => {
-        const handler = jest.fn();
+        const handler = vi.fn();
         const viewA = makeView() as any;
         const viewB = makeView() as any;
         serpentineViewService.setView('instance-a', viewA);

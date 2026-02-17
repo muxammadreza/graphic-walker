@@ -1,13 +1,14 @@
+import { beforeEach, describe, expect, it, vi } from 'bun:test';
 import { mapVegaLiteSpecToChart } from './vlSpecMapper';
 
-const mockVegaliteMapper = jest.fn();
-const mockNewChart = jest.fn();
+const mockVegaliteMapper = vi.fn();
+const mockNewChart = vi.fn();
 
-jest.mock('./vl2gw', () => ({
+void vi.mock('./vl2gw', () => ({
     VegaliteMapper: (...args: unknown[]) => mockVegaliteMapper(...args),
 }));
 
-jest.mock('../models/visSpecHistory', () => ({
+void vi.mock('../models/visSpecHistory', () => ({
     newChart: (...args: unknown[]) => mockNewChart(...args),
 }));
 

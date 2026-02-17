@@ -13,41 +13,62 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v2
+      - name: Check out repository
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '20.x' # Adjust as per your project requirement
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.9
 
-    - name: Bump graphic-walker version
-      working-directory: ./packages/graphic-walker
-      run: |
-        yarn version --no-git-tag-version --new-version ${{ github.event.inputs.newVersion }}
+      - name: Bump package versions and dependency links
+        run: |
+          bun <<'BUN'
+          import { readFileSync, writeFileSync } from 'node:fs'
 
-    - name: Update playground dependency
-      run: |
-        yarn add @kanaries/graphic-walker@${{ github.event.inputs.newVersion }}
-      working-directory: ./packages/playground
+          const version = process.env.NEW_VERSION
+          if (!version) {
+            throw new Error('NEW_VERSION is required')
+          }
 
-    - name: Update Wasm dependecy
-      run: |
-        yarn add -D @kanaries/graphic-walker@${{ github.event.inputs.newVersion }}
-      working-directory: ./packages/duckdb-wasm-computation
+          const updates = [
+            ['packages/graphic-walker/package.json', (pkg) => { pkg.version = version }],
+            ['packages/playground/package.json', (pkg) => {
+              pkg.dependencies = pkg.dependencies || {}
+              pkg.dependencies['@kanaries/graphic-walker'] = version
+            }],
+            ['packages/duckdb-wasm-computation/package.json', (pkg) => {
+              pkg.devDependencies = pkg.devDependencies || {}
+              pkg.peerDependencies = pkg.peerDependencies || {}
+              pkg.devDependencies['@kanaries/graphic-walker'] = version
+              pkg.peerDependencies['@kanaries/graphic-walker'] = version
+            }],
+          ]
 
-    - name: Commit Changes
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add .
-        git commit -m "release: Update graphic-walker to ${{ github.event.inputs.newVersion }}"
+          for (const [file, mutate] of updates) {
+            const parsed = JSON.parse(readFileSync(file, 'utf8'))
+            mutate(parsed)
+            writeFileSync(file, `${JSON.stringify(parsed, null, 2)}\n`)
+          }
+          BUN
+        env:
+          NEW_VERSION: ${{ github.event.inputs.newVersion }}
 
-    - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v3
-      with:
-        commit-message: Sync graphic-walker and playground versions to ${{ github.event.inputs.newVersion }}
-        title: 'Sync graphic-walker and playground package versions to ${{ github.event.inputs.newVersion }}'
-        body: 'This is an auto-generated PR to update the graphic-walker version and its dependency in playground.'
-        branch: sync-versions-${{ github.event.inputs.newVersion }} # Branch to create the PR
-        labels: version-sync, automated pr
+      - name: Install deps (refresh lockfile)
+        run: bun install
+
+      - name: Commit Changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "release: Update graphic-walker to ${{ github.event.inputs.newVersion }}"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: Sync graphic-walker and playground versions to ${{ github.event.inputs.newVersion }}
+          title: 'Sync graphic-walker and playground package versions to ${{ github.event.inputs.newVersion }}'
+          body: 'This is an auto-generated PR to update the graphic-walker version and its dependency in playground.'
+          branch: sync-versions-${{ github.event.inputs.newVersion }}
+          labels: version-sync, automated pr

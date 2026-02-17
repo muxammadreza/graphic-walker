@@ -6,17 +6,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v3
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.9
+      - name: Setup Node.js for npm auth
+        uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
       - name: Install deps
-        run: yarn install
-      - name: npm package build
-        run: yarn workspace @kanaries/graphic-walker build
+        run: bun install --frozen-lockfile
+      - name: Graphic Walker package build
+        run: bun run build:gw
       - name: Duckdb build
-        run: yarn workspace @kanaries/duckdb-computation build
+        run: bun run build:db
       - run: npm publish
         working-directory: ./packages/duckdb-wasm-computation
         env:

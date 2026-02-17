@@ -1,21 +1,22 @@
+import { beforeEach, describe, expect, it, vi } from 'bun:test';
 import type { IComputationFunction, IPredicate, IRow, IViewField } from '../../interfaces';
 import { dataQuery } from '../../computation/index';
 import { explainBySelection } from './explainBySelection';
 
-jest.mock('../../utils/workflow', () => ({
-    toWorkflow: jest.fn(() => []),
+void vi.mock('../../utils/workflow', () => ({
+    toWorkflow: vi.fn(() => []),
 }));
 
-jest.mock('../../computation/index', () => ({
-    dataQuery: jest.fn(),
+void vi.mock('../../computation/index', () => ({
+    dataQuery: vi.fn(),
 }));
 
-jest.mock('../../utils/normalization', () => ({
-    normalizeWithParent: jest.fn((selected, parent) => ({
+void vi.mock('../../utils/normalization', () => ({
+    normalizeWithParent: vi.fn((selected: IRow[], parent: IRow[]) => ({
         normalizedData: selected,
         normalizedParentData: parent,
     })),
-    compareDistributionJS: jest.fn(() => 0.5),
+    compareDistributionJS: vi.fn(() => 0.5),
 }));
 
 const makeField = (overrides: Partial<IViewField>): IViewField => ({
@@ -26,7 +27,7 @@ const makeField = (overrides: Partial<IViewField>): IViewField => ({
     ...overrides,
 });
 
-const mockedDataQuery = dataQuery as jest.MockedFunction<typeof dataQuery>;
+const mockedDataQuery = dataQuery as unknown as ReturnType<typeof vi.fn>;
 const noopComputation = (async () => []) as IComputationFunction;
 
 describe('explainBySelection', () => {

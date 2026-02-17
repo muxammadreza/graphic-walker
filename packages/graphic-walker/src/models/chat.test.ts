@@ -1,4 +1,6 @@
-jest.mock('nanoid', () => ({ nanoid: () => 'mock-id' }));
+import { describe, expect, it, vi } from 'bun:test';
+
+void vi.mock('nanoid', () => ({ nanoid: () => 'mock-id' }));
 
 import { toVegaSimplifiedWithAggergation } from './chat';
 import type { DraggableFieldState, IChart, IViewField, IVisualLayout } from '@/interfaces';

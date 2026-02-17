@@ -4,14 +4,21 @@
   "description": "![](https://img.shields.io/github/license/kanaries/graphic-walker) ![](https://img.shields.io/npm/v/@kanaries/graphic-walker) ![](https://img.shields.io/github/workflow/status/kanaries/graphic-walker/auto-build.yml)",
   "private": true,
   "scripts": {
-    "build": "yarn workspace @kanaries/graphic-walker build",
-    "deploy": "yarn workspace playground deploy"
+    "dev": "cd packages/graphic-walker && bun run dev",
+    "build": "bun run build:gw",
+    "build:gw": "cd packages/graphic-walker && bun run build",
+    "build:db": "cd packages/duckdb-wasm-computation && bun run build",
+    "build:playground": "cd packages/playground && bun run build",
+    "test": "bun run test:gw",
+    "test:gw": "cd packages/graphic-walker && bun run test",
+    "typecheck": "bun run typecheck:gw && bun run typecheck:db",
+    "typecheck:gw": "cd packages/graphic-walker && bunx tsc --noEmit",
+    "typecheck:db": "cd packages/duckdb-wasm-computation && bunx tsc --noEmit",
+    "lint": "cd packages/playground && bun run lint"
   },
-  "workspaces": {
-    "packages": [
-      "packages/*"
-    ]
-  },
+  "workspaces": [
+    "packages/*"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Kanaries/graphic-walker.git"
@@ -32,6 +39,8 @@
   },
   "homepage": "https://github.com/Kanaries/graphic-walker#readme",
   "engines": {
-    "node": ">=20.0.0"
-  }
+    "node": ">=20.0.0",
+    "bun": ">=1.3.9"
+  },
+  "packageManager": "bun@1.3.9"
 }

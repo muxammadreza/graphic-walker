@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'bun:test';
 import type { IMutField } from '../interfaces';
 import { hasMetaChanged, hasOnMetaChangeChanged } from './metaChange';
 
@@ -14,8 +15,8 @@ const baseMeta: IMutField[] = [
 
 describe('VizStoreWrapper', () => {
     it('detects onMetaChange callback changes even when metadata is unchanged', () => {
-        const onMetaChangeA = jest.fn();
-        const onMetaChangeB = jest.fn();
+        const onMetaChangeA = vi.fn();
+        const onMetaChangeB = vi.fn();
 
         expect(hasOnMetaChangeChanged(onMetaChangeA, onMetaChangeA)).toBe(false);
         expect(hasOnMetaChangeChanged(onMetaChangeA, onMetaChangeB)).toBe(true);

@@ -1,4 +1,6 @@
-jest.mock('@observablehq/plot', () => {
+import { describe, expect, test, vi } from 'bun:test';
+
+void vi.mock('@observablehq/plot', () => {
     class MockMark {
         ariaLabel: string;
         channels: any;

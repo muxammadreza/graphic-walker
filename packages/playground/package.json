@@ -1,51 +1,54 @@
 {
-    "name": "playground",
-    "private": true,
-    "version": "0.0.0",
-    "type": "module",
-    "scripts": {
-        "dev": "vite",
-        "build:gw": "yarn workspace @kanaries/graphic-walker build",
-        "build:db": "yarn workspace @kanaries/duckdb-computation build",
-        "build": "npm run build:gw && npm run build:db && tsc && cp ../graphic-walker/public/* ./public && vite build",
-        "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-        "preview": "vite preview"
-    },
-    "prettier": {
-        "tabWidth": 4,
-        "printWidth": 160,
-        "singleQuote": true
-    },
-    "dependencies": {
-        "@duckdb/duckdb-wasm": "^1.28.0",
-        "@headlessui/react": "1.7.12",
-        "@heroicons/react": "^2.0.8",
-        "@kanaries/duckdb-computation": "0.0.1",
-        "@kanaries/graphic-walker": "0.5.0",
-        "@vercel/analytics": "^1.1.1",
-        "color-space": "2.0.1",
-        "react": "^19.2.4",
-        "react-color": "^2.19.3",
-        "react-dom": "^19.2.4",
-        "react-router": "^6.20.0",
-        "react-router-dom": "^6.20.0",
-        "react-syntax-highlighter": "^15.5.0"
-    },
-    "devDependencies": {
-        "@types/react": "^19.2.14",
-        "@types/react-color": "^3.0.6",
-        "@types/react-dom": "^19.2.3",
-        "@types/react-syntax-highlighter": "^15.5.10",
-        "@typescript-eslint/eslint-plugin": "^6.10.0",
-        "@typescript-eslint/parser": "^6.10.0",
-        "@vitejs/plugin-react": "^4.2.0",
-        "autoprefixer": "^10.4.16",
-        "eslint": "^8.53.0",
-        "eslint-plugin-react-hooks": "^4.6.0",
-        "eslint-plugin-react-refresh": "^0.4.4",
-        "postcss": "^8.4.31",
-        "tailwindcss": "^3.3.5",
-        "typescript": "^5.2.2",
-        "vite": "^5.0.0"
-    }
+  "name": "playground",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build:gw": "cd ../graphic-walker && bun run build",
+    "build:db": "cd ../duckdb-wasm-computation && bun run build",
+    "build": "bun run build:gw && bun run build:db && tsc && cp ../graphic-walker/public/* ./public && vite build",
+    "typecheck": "bunx tsc --noEmit",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
+  },
+  "prettier": {
+    "tabWidth": 4,
+    "printWidth": 160,
+    "singleQuote": true
+  },
+  "dependencies": {
+    "@duckdb/duckdb-wasm": "^1.28.0",
+    "@headlessui/react": "1.7.12",
+    "@heroicons/react": "^2.0.8",
+    "@kanaries/duckdb-computation": "0.0.1",
+    "@kanaries/graphic-walker": "0.5.0",
+    "@vercel/analytics": "^1.1.1",
+    "color-space": "2.0.1",
+    "react": "^19.2.4",
+    "react-color": "^2.19.3",
+    "react-dom": "^19.2.4",
+    "react-router": "^6.20.0",
+    "react-router-dom": "^6.20.0",
+    "react-syntax-highlighter": "^15.5.0",
+    "styled-components": "^6.1.19"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-color": "^3.0.6",
+    "@types/react-dom": "^19.2.3",
+    "@types/react-syntax-highlighter": "^15.5.10",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.53.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.4",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0"
+  },
+  "packageManager": "bun@1.3.9"
 }

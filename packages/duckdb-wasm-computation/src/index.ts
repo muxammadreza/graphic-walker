@@ -8,7 +8,7 @@ import eh_worker from '@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url'
 import initWasm, { parser_dsl_with_table } from '@kanaries/gw-dsl-parser';
 import dslWasm from '@kanaries/gw-dsl-parser/gw_dsl_parser_bg.wasm?url';
 import { nanoid } from 'nanoid';
-import type { IDataSourceProvider, IMutField, IDataSourceListener } from '@kanaries/graphic-walker';
+import type { IDataQueryPayload, IDataSourceProvider, IMutField, IDataSourceListener, IRow } from '@kanaries/graphic-walker';
 import { exportFullRaw, fromFields } from '@kanaries/graphic-walker/models/visSpecHistory';
 import { Table, Vector } from 'apache-arrow';
 import { bigNumToString } from 'apache-arrow/util/bn';
@@ -98,18 +98,18 @@ export async function getMemoryProvider(): Promise<IDataSourceProvider> {
             metaDict.set(datasetId, meta);
             listeners.forEach((cb) => cb(2, datasetId));
         },
-        async getSpecs(datasetId) {
+        async getSpecs(datasetId: string) {
             const specs = specDict.get(datasetId);
             if (!specs) {
                 throw new Error('cannot find specs');
             }
             return specs;
         },
-        async saveSpecs(datasetId, value) {
+        async saveSpecs(datasetId: string, value: string) {
             specDict.set(datasetId, value);
             listeners.forEach((cb) => cb(4, datasetId));
         },
-        async queryData(query, datasetIds) {
+        async queryData(query: IDataQueryPayload, datasetIds: string[]): Promise<IRow[]> {
             const sql = parser_dsl_with_table(datasetIds[0], JSON.stringify(query));
             if (process.env.NODE_ENV !== 'production') {
                 console.log(query, sql);
@@ -117,10 +117,13 @@ export async function getMemoryProvider(): Promise<IDataSourceProvider> {
             const res = await conn.query(sql).then(transformData);
             return res;
         },
-        registerCallback(cb) {
+        registerCallback(cb: IDataSourceListener) {
             listeners.push(cb);
             return () => {
-                listeners.filter((x) => x !== cb);
+                const index = listeners.indexOf(cb);
+                if (index >= 0) {
+                    listeners.splice(index, 1);
+                }
             };
         },
     };

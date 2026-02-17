@@ -7,18 +7,15 @@ on:
 jobs:
   auto-build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20.x, 22.x]
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: ${{ matrix.node-version }}
+          bun-version: 1.3.9
       - name: Install deps
-        run: yarn install
-      - name: npm package build
-        run: yarn workspace @kanaries/graphic-walker build
+        run: bun install --frozen-lockfile
+      - name: Graphic Walker package build
+        run: bun run build:gw
       - name: Web app (playground) build
-        run: yarn workspace playground build
+        run: bun run build:playground
