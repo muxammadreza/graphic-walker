@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
 
 export default function SideResize(props: {
     defaultWidth: number;
@@ -10,31 +10,43 @@ export default function SideResize(props: {
     const sidebarRef = useRef<HTMLDivElement>(null);
     const [isResizing, setIsResizing] = useState(false);
     const [sidebarWidth, setSidebarWidth] = useState(props.defaultWidth);
-    const startResizing = React.useCallback(() => {
+    const startResizing = () => {
         setIsResizing(true);
-    }, []);
+    };
 
-    const stopResizing = React.useCallback(() => {
+    const stopResizing = () => {
         setIsResizing(false);
-    }, []);
+    };
 
-    const resize = React.useCallback(
-        (mouseMoveEvent) => {
-            if (isResizing) {
-                setSidebarWidth(mouseMoveEvent.clientX - sidebarRef.current!.getBoundingClientRect().left);
-            }
-        },
-        [isResizing]
-    );
+    const onResize = useEffectEvent((mouseMoveEvent: MouseEvent) => {
+        if (!isResizing || !sidebarRef.current) {
+            return;
+        }
 
-    React.useEffect(() => {
-        window.addEventListener('mousemove', resize);
-        window.addEventListener('mouseup', stopResizing);
-        return () => {
-            window.removeEventListener('mousemove', resize);
-            window.removeEventListener('mouseup', stopResizing);
+        const nextWidth = mouseMoveEvent.clientX - sidebarRef.current.getBoundingClientRect().left;
+        setSidebarWidth((prev) => (prev === nextWidth ? prev : nextWidth));
+    });
+
+    useEffect(() => {
+        if (!isResizing) {
+            return;
+        }
+
+        const handleMouseMove = (event: MouseEvent) => {
+            onResize(event);
         };
-    }, [resize, stopResizing]);
+
+        const handleMouseUp = () => {
+            stopResizing();
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isResizing]);
 
     return (
         <div className={`relative ${props.className}`} style={{ width: sidebarWidth }} ref={sidebarRef}>

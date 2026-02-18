@@ -1,4 +1,4 @@
-import React, { Fragment, forwardRef, useContext, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
+import React, { Fragment, forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import { CircleMarker, MapContainer, Polygon, Marker, TileLayer, Tooltip, AttributionControl } from 'react-leaflet';
 import { type Map, divIcon } from 'leaflet';
 import type { DeepReadonly, IChannelScales, IGeoUrl, IRow, IViewField, VegaGlobalConfig } from '../../interfaces';
@@ -15,6 +15,7 @@ import ColorPanel from './color';
 import { getColor } from '@/utils/useTheme';
 import { field } from 'vega';
 import { themeContext } from '@/store/theme';
+import { observeLeafletMapResize } from './mapResizeObserver';
 
 export interface IChoroplethRendererProps {
     name?: string;
@@ -234,19 +235,15 @@ const ChoroplethRenderer = forwardRef<IChoroplethRendererRef, IChoroplethRendere
         }));
     }, [defaultAggregated, details, color, opacity]);
 
-    const mapRef = useRef<Map>(null);
-    useEffect(() => {
-        const container = mapRef.current?.getContainer();
-        if (container) {
-            const ro = new ResizeObserver(() => {
-                mapRef.current?.invalidateSize();
-            });
-            ro.observe(container);
-            return () => {
-                ro.unobserve(container);
-            };
+    const mapRef = useRef<Map | null>(null);
+    const handleMapRef = useCallback((map: Map | null) => {
+        mapRef.current = map;
+        if (!map) {
+            return;
         }
-    });
+
+        return observeLeafletMapResize(map);
+    }, []);
 
     const appRef = useAppRootContext();
 
@@ -276,7 +273,7 @@ const ChoroplethRenderer = forwardRef<IChoroplethRendererRef, IChoroplethRendere
             preferCanvas
             attributionControl={false}
             center={center}
-            ref={mapRef}
+            ref={handleMapRef}
             zoom={5}
             bounds={bounds}
             style={{ width: '100%', height: '100%', zIndex: 1 }}

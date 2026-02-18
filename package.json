@@ -7,6 +7,7 @@
     "dev": "cd packages/graphic-walker && bun run dev",
     "build": "bun run build:gw",
     "build:gw": "cd packages/graphic-walker && bun run build",
+    "build:gw:watch": "cd packages/graphic-walker && bun run build:dev:watch",
     "build:db": "cd packages/duckdb-wasm-computation && bun run build",
     "build:playground": "cd packages/playground && bun run build",
     "test": "bun run test:gw",

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useEffectEvent } from 'react';
 import { Droppable } from '@kanaries/react-beautiful-dnd';
 import { useTranslation } from 'react-i18next';
 import { observer } from 'mobx-react-lite';
@@ -33,61 +33,79 @@ const DatasetFields: React.FC = (props) => {
     // Calculate percentage based on container height
     const [fieldListHeightPercent, setFieldListHeightPercent] = useState(50);
 
-    // Update percentage when container size changes
+    const updatePercentage = useEffectEvent(() => {
+        if (!containerRef.current) {
+            return;
+        }
+
+        const containerHeight = containerRef.current.getBoundingClientRect().height;
+        if (containerHeight > 0) {
+            const percent = (fieldListHeightPx / containerHeight) * 100;
+            setFieldListHeightPercent(Math.max(20, Math.min(80, percent)));
+        }
+    });
+
     useEffect(() => {
-        const updatePercentage = () => {
-            if (containerRef.current) {
-                const containerHeight = containerRef.current.getBoundingClientRect().height;
-                if (containerHeight > 0) {
-                    const percent = (fieldListHeightPx / containerHeight) * 100;
-                    setFieldListHeightPercent(Math.max(20, Math.min(80, percent)));
-                }
-            }
+        const handleWindowResize = () => {
+            updatePercentage();
         };
 
+        window.addEventListener('resize', handleWindowResize);
+        return () => window.removeEventListener('resize', handleWindowResize);
+    }, []);
+
+    useEffect(() => {
         updatePercentage();
-        window.addEventListener('resize', updatePercentage);
-        return () => window.removeEventListener('resize', updatePercentage);
     }, [fieldListHeightPx]);
 
-    const handleMouseDown = useCallback(() => {
+    const handleMouseDown = () => {
         setIsResizing(true);
-    }, []);
+    };
 
-    const handleMouseUp = useCallback(() => {
+    const handleMouseUp = useEffectEvent(() => {
         setIsResizing(false);
-    }, []);
+    });
 
-    const handleMouseMove = useCallback(
-        (e: MouseEvent) => {
-            if (isResizing && containerRef.current) {
-                const containerRect = containerRef.current.getBoundingClientRect();
-                const newHeightPx = e.clientY - containerRect.top;
+    const handleMouseMove = useEffectEvent((e: MouseEvent) => {
+        if (!isResizing || !containerRef.current) {
+            return;
+        }
 
-                // Enforce minimum height
-                const constrainedHeight = Math.max(MIN_FIELD_LIST_HEIGHT, newHeightPx);
-                const maxHeight = containerRect.height * 0.8; // Max 80% of container
-                const finalHeight = Math.min(constrainedHeight, maxHeight);
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const newHeightPx = e.clientY - containerRect.top;
 
-                setFieldListHeightPx(finalHeight);
+        // Enforce minimum height
+        const constrainedHeight = Math.max(MIN_FIELD_LIST_HEIGHT, newHeightPx);
+        const maxHeight = containerRect.height * 0.8; // Max 80% of container
+        const finalHeight = Math.min(constrainedHeight, maxHeight);
 
-                // Persist to localStorage
-                localStorage.setItem(STORAGE_KEY, finalHeight.toString());
-            }
-        },
-        [isResizing],
-    );
+        setFieldListHeightPx((prev) => (prev === finalHeight ? prev : finalHeight));
+    });
+
+    useEffect(() => {
+        if (!isResizing) {
+            localStorage.setItem(STORAGE_KEY, fieldListHeightPx.toString());
+        }
+    }, [fieldListHeightPx, isResizing]);
 
     useEffect(() => {
         if (isResizing) {
-            window.addEventListener('mousemove', handleMouseMove);
-            window.addEventListener('mouseup', handleMouseUp);
+            const mouseMoveListener = (event: MouseEvent) => {
+                handleMouseMove(event);
+            };
+
+            const mouseUpListener = () => {
+                handleMouseUp();
+            };
+
+            window.addEventListener('mousemove', mouseMoveListener);
+            window.addEventListener('mouseup', mouseUpListener);
             return () => {
-                window.removeEventListener('mousemove', handleMouseMove);
-                window.removeEventListener('mouseup', handleMouseUp);
+                window.removeEventListener('mousemove', mouseMoveListener);
+                window.removeEventListener('mouseup', mouseUpListener);
             };
         }
-    }, [isResizing, handleMouseMove, handleMouseUp]);
+    }, [isResizing]);
 
     return (
         <div

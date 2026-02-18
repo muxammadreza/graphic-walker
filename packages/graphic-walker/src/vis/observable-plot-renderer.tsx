@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef, useContext, forwardRef, RefObject } from 'react';
+import React, { useEffect, useEffectEvent, useState, useMemo, useRef, useContext, useCallback, forwardRef, RefObject } from 'react';
 import * as Plot from '@observablehq/plot';
 import styled from 'styled-components';
 import { useResizeDetector } from 'react-resize-detector';
@@ -169,6 +169,9 @@ const ObservablePlotRenderer = forwardRef<IReactPlotHandler, ObservablePlotProps
 
     const mediaTheme = useContext(themeContext);
     const { reportError: reportGWError } = useReporter();
+    const handleGeomClick = useEffectEvent((values: unknown, e: PointerEvent) => {
+        onGeomClick?.(values, e);
+    });
 
     const guardedRows = useMemo(() => rows.filter((x) => defaultAggregate || x.aggName !== 'expr'), [rows, defaultAggregate]);
     const guardedCols = useMemo(() => columns.filter((x) => defaultAggregate || x.aggName !== 'expr'), [columns, defaultAggregate]);
@@ -210,7 +213,6 @@ const ObservablePlotRenderer = forwardRef<IReactPlotHandler, ObservablePlotProps
         }
         const count = rowRepeatFields.length * colRepeatFields.length;
 
-        console.log({ count, rowRepeatFields, colRepeatFields });
         specsArr = toObservablePlotSpec({
             columns: guardedCols,
             dataSource,
@@ -263,7 +265,6 @@ const ObservablePlotRenderer = forwardRef<IReactPlotHandler, ObservablePlotProps
         //         })
         //     );
         // }
-        console.log({ specsArr });
         return specsArr;
     }, [props, rowRepeatFields, colRepeatFields]);
 
@@ -282,6 +283,8 @@ const ObservablePlotRenderer = forwardRef<IReactPlotHandler, ObservablePlotProps
     const plotRefs = useRef<IVegaChartRef[]>([]);
 
     useEffect(() => {
+        const pointerCleanupCallbacks: Array<() => void> = [];
+
         // Clear old plots first
         plotRefs.current.forEach((plotRef) => {
             if (plotRef.canvas && plotRef.canvas.parentNode) {
@@ -321,9 +324,15 @@ const ObservablePlotRenderer = forwardRef<IReactPlotHandler, ObservablePlotProps
             });
 
             // Example: attach a pointer click. (This won't replicate selection signals, but might let you do something.)
-            plotElem.addEventListener('pointerdown', (e: Event) => {
-                click$.next(e as PointerEvent);
-                onGeomClick?.(null, e as PointerEvent); // pass real data as needed
+            const pointerDownListener = (e: Event) => {
+                const pointerEvent = e as PointerEvent;
+                click$.next(pointerEvent);
+                handleGeomClick(null, pointerEvent); // pass real data as needed
+            };
+
+            plotElem.addEventListener('pointerdown', pointerDownListener);
+            pointerCleanupCallbacks.push(() => {
+                plotElem.removeEventListener('pointerdown', pointerDownListener);
             });
 
             // If you want to test for “canvas exceeded size”
@@ -343,6 +352,7 @@ const ObservablePlotRenderer = forwardRef<IReactPlotHandler, ObservablePlotProps
 
         return () => {
             // cleanup
+            pointerCleanupCallbacks.forEach((cleanup) => cleanup());
             plotRefs.current.forEach((plotRef) => {
                 if (plotRef.canvas && plotRef.canvas.parentNode) {
                     plotRef.canvas.parentNode.removeChild(plotRef.canvas);
@@ -352,50 +362,52 @@ const ObservablePlotRenderer = forwardRef<IReactPlotHandler, ObservablePlotProps
         };
     }, [specs, plotPlaceholders, computedSize]);
 
+    const getSVGData = useCallback(async () => {
+        // For each sub-plot, read the <svg> outerHTML:
+        const results: string[] = [];
+        plotRefs.current.forEach((plotRef) => {
+            if (plotRef.canvas instanceof SVGSVGElement) {
+                results.push(plotRef.canvas.outerHTML);
+            } else if (plotRef.canvas?.querySelector?.('svg')) {
+                const svg = plotRef.canvas.querySelector('svg');
+                if (svg) {
+                    results.push(svg.outerHTML);
+                }
+            }
+        });
+        return results;
+    }, []);
+
+    const getCanvasData = useCallback(async () => {
+        // If using <canvas> in Plot, you’d do something similar:
+        const results: string[] = [];
+        plotRefs.current.forEach((plotRef) => {
+            const canvas = plotRef.canvas?.querySelector?.('canvas');
+            if (canvas) {
+                // Convert to data URL:
+                results.push(canvas.toDataURL());
+            }
+        });
+        return results;
+    }, []);
+
     // -- Example stubs for the IReactPlotHandler ref:
     React.useImperativeHandle(
         ref,
         () => ({
-            getSVGData: async () => {
-                // For each sub-plot, read the <svg> outerHTML:
-                const results: string[] = [];
-                plotRefs.current.forEach((ref) => {
-                    if (ref.canvas instanceof SVGSVGElement) {
-                        results.push(ref.canvas.outerHTML);
-                    } else if (ref.canvas?.querySelector?.('svg')) {
-                        const svg = ref.canvas.querySelector('svg');
-                        if (svg) {
-                            results.push(svg.outerHTML);
-                        }
-                    }
-                });
-                return results;
-            },
-            getCanvasData: async () => {
-                // If using <canvas> in Plot, you’d do something similar:
-                const results: string[] = [];
-                plotRefs.current.forEach((ref) => {
-                    const canvas = ref.canvas?.querySelector?.('canvas');
-                    if (canvas) {
-                        // Convert to data URL:
-                        results.push(canvas.toDataURL());
-                    }
-                });
-                return results;
-            },
-            downloadSVG: async (filename?: string) => {
+            getSVGData,
+            getCanvasData,
+            downloadSVG: async (_filename?: string) => {
                 // Example: gather all SVG, push a separate download
-                const data = await (ref as any).current?.getSVGData();
                 // you’d implement your own file-saver logic
-                return data;
+                return getSVGData();
             },
-            downloadPNG: async (filename?: string) => {
-                const data = await (ref as any).current?.getCanvasData();
+            downloadPNG: async (_filename?: string) => {
                 // you’d implement your own file-saver logic
-                return data;
+                return getCanvasData();
             },
         }),
-        [],
+        [getCanvasData, getSVGData],
     );
 
     // Use the same exported hook as your VegaLite version for naming consistency:

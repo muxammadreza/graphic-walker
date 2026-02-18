@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useEffectEvent } from 'react';
 import { getCircle } from '../../lib/paint';
 import { ShadowDomContext } from '../../shadow-dom';
 import { Input } from '../ui/input';
@@ -198,18 +198,27 @@ export const ColorEditor = (props: { color: string; onChangeColor: (color: strin
     const ref = React.useRef<HTMLDivElement>(null);
     const shadowDomMeta = React.useContext(ShadowDomContext);
 
-    useEffect(() => {
-        if (showColorEdit) {
-            const listener = (e: Event) => {
-                if (e.target && !ref.current?.contains(e.target as Node)) {
-                    setShowColorEdit(false);
-                }
-            };
-            const dom = shadowDomMeta.root;
-            dom?.addEventListener('click', listener);
-            return () => dom?.removeEventListener('click', listener);
+    const handleOutsideClick = useEffectEvent((e: Event) => {
+        if (e.target && !ref.current?.contains(e.target as Node)) {
+            setShowColorEdit(false);
         }
-    }, [showColorEdit]);
+    });
+
+    useEffect(() => {
+        if (!showColorEdit) {
+            return;
+        }
+
+        const dom = shadowDomMeta.root;
+        if (!dom) {
+            return;
+        }
+
+        dom.addEventListener('click', handleOutsideClick);
+        return () => {
+            dom.removeEventListener('click', handleOutsideClick);
+        };
+    }, [showColorEdit, shadowDomMeta.root, handleOutsideClick]);
 
     const [color, setColor] = React.useState(props.color);
     return (

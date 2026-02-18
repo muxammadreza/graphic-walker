@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useMemo, useRef } from 'react';
+import React, { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, Tooltip, CircleMarker, AttributionControl, Pane } from 'react-leaflet';
 import { type Map } from 'leaflet';
 import type { DeepReadonly, IChannelScales, IRow, IViewField, VegaGlobalConfig } from '../../interfaces';
@@ -8,6 +8,7 @@ import { TooltipContent } from './tooltip';
 import { useAppRootContext } from '../appRoot';
 import { ChangeView } from './utils';
 import ColorPanel from './color';
+import { observeLeafletMapResize } from './mapResizeObserver';
 
 export interface IPOIRendererProps {
     name?: string;
@@ -86,20 +87,15 @@ const POIRenderer = forwardRef<IPOIRendererRef, IPOIRendererProps>(function POIR
         ];
     }, [lngLat]);
 
-    const mapRef = useRef<Map>(null);
-
-    useEffect(() => {
-        const container = mapRef.current?.getContainer();
-        if (container) {
-            const ro = new ResizeObserver(() => {
-                mapRef.current?.invalidateSize();
-            });
-            ro.observe(container);
-            return () => {
-                ro.unobserve(container);
-            };
+    const mapRef = useRef<Map | null>(null);
+    const handleMapRef = useCallback((map: Map | null) => {
+        mapRef.current = map;
+        if (!map) {
+            return;
         }
-    });
+
+        return observeLeafletMapResize(map);
+    }, []);
 
     const appRef = useAppRootContext();
 
@@ -174,7 +170,7 @@ const POIRenderer = forwardRef<IPOIRendererRef, IPOIRendererProps>(function POIR
         <MapContainer
             attributionControl={false}
             center={center}
-            ref={mapRef}
+            ref={handleMapRef}
             zoom={5}
             bounds={bounds}
             preferCanvas

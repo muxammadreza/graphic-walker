@@ -351,6 +351,9 @@ const AggPainterContent = (props: {
     const loading = loadingData || loadingResult;
 
     useEffect(() => {
+        let disposed = false;
+        let cleanupDrawListeners: (() => void) | null = null;
+
         if (!loading && containerRef.current) {
             const fallbackMark = getMarkForAgg([getDomainType(props.y.field.semanticType), getDomainType(props.x.field.semanticType)]);
             const mark = props.mark === 'auto' ? autoMark([props.x.field.semanticType, props.y.field.semanticType]) : props.mark;
@@ -479,8 +482,28 @@ const AggPainterContent = (props: {
                 res.view.addEventListener('mousemove', handleDraw);
                 res.view.addEventListener('touchstart', handleDraw);
                 res.view.addEventListener('touchmove', handleDraw);
+
+                const cleanup = () => {
+                    res.view.removeEventListener('mousedown', handleDraw);
+                    res.view.removeEventListener('mousemove', handleDraw);
+                    res.view.removeEventListener('touchstart', handleDraw);
+                    res.view.removeEventListener('touchmove', handleDraw);
+                    res.finalize();
+                };
+
+                cleanupDrawListeners = cleanup;
+
+                if (disposed) {
+                    cleanup();
+                }
             });
         }
+
+        return () => {
+            disposed = true;
+            cleanupDrawListeners?.();
+            cleanupDrawListeners = null;
+        };
     }, [loading, data, props.dict, props.vegaConfig, paintDimensions, props.onReset, props.mark]);
 
     const [showCursorPreview, setShowCursorPreview] = React.useState(false);
@@ -682,6 +705,9 @@ const PainterContent = (props: {
     const loading = loadingData || loadingResult;
 
     useEffect(() => {
+        let disposed = false;
+        let cleanupDrawListeners: (() => void) | null = null;
+
         if (!loading && containerRef.current) {
             const fallbackMark = getMarkFor([props.domainY.domain.type, props.domainX.domain.type]);
             const mark = props.mark === 'auto' ? autoMark([props.x.semanticType, props.y.semanticType]) : props.mark;
@@ -800,8 +826,28 @@ const PainterContent = (props: {
                 res.view.addEventListener('mousemove', handleDraw);
                 res.view.addEventListener('touchstart', handleDraw);
                 res.view.addEventListener('touchmove', handleDraw);
+
+                const cleanup = () => {
+                    res.view.removeEventListener('mousedown', handleDraw);
+                    res.view.removeEventListener('mousemove', handleDraw);
+                    res.view.removeEventListener('touchstart', handleDraw);
+                    res.view.removeEventListener('touchmove', handleDraw);
+                    res.finalize();
+                };
+
+                cleanupDrawListeners = cleanup;
+
+                if (disposed) {
+                    cleanup();
+                }
             });
         }
+
+        return () => {
+            disposed = true;
+            cleanupDrawListeners?.();
+            cleanupDrawListeners = null;
+        };
     }, [loading, data, props.dict, props.vegaConfig, props.domainX, props.domainY, props.onReset, props.mark]);
 
     const [showCursorPreview, setShowCursorPreview] = React.useState(false);

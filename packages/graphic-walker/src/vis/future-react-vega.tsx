@@ -2,7 +2,7 @@
  * TODO: This file will be used when vega-lite facets bug is fixed.
  * https://github.com/vega/vega-lite/issues/4680
  */
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useEffectEvent, useRef } from 'react';
 import embed from 'vega-embed';
 import { Subject } from 'rxjs'
 import * as op from 'rxjs/operators';
@@ -99,18 +99,24 @@ const ReactVega: React.FC<ReactVegaProps> = props => {
         size,
         onGeomClick
     } = props;
+
+    const handleGeomClick = useEffectEvent((values: unknown, e: ScenegraphEvent) => {
+        onGeomClick?.(values, e);
+    });
+
     const container = useRef<HTMLDivElement>(null);
     useEffect(() => {
         const clickSub = geomClick$.subscribe(([values, e]) => {
-            if (onGeomClick) {
-                onGeomClick(values, e);
-            }
+            handleGeomClick(values, e);
         })
         return () => {
             clickSub.unsubscribe();
         }
     }, []);
     useEffect(() => {
+        let disposed = false;
+        let cleanupEmbeddedView: (() => void) | null = null;
+
         if (container.current) {
             const rowDims = rows.filter(f => f.analyticType === 'dimension');
             const colDims = columns.filter(f => f.analyticType === 'dimension');
@@ -178,14 +184,36 @@ const ReactVega: React.FC<ReactVegaProps> = props => {
                 }
             }
             embed(container.current, spec, { mode: 'vega-lite', actions: false }).then(res => {
-                res.view.addEventListener('click', (e) => {
+                const clickListener = (e: ScenegraphEvent) => {
                     click$.next(e);
-                })
-                res.view.addSignalListener(SELECTION_NAME, (name: any, values: any) => {
+                };
+
+                const selectionListener = (_name: string, values: unknown) => {
                     selection$.next(values);
-                });
+                };
+
+                res.view.addEventListener('click', clickListener)
+                res.view.addSignalListener(SELECTION_NAME, selectionListener);
+
+                const cleanup = () => {
+                    res.view.removeEventListener('click', clickListener);
+                    res.view.removeSignalListener(SELECTION_NAME, selectionListener);
+                    res.finalize();
+                };
+
+                cleanupEmbeddedView = cleanup;
+
+                if (disposed) {
+                    cleanup();
+                }
             });
         }
+
+        return () => {
+            disposed = true;
+            cleanupEmbeddedView?.();
+            cleanupEmbeddedView = null;
+        };
     }, [dataSource, rows, columns, defaultAggregate, geomType, color, opacity, size]);
     return <div ref={container}></div>
 }

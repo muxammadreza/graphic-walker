@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle, ForwardedRef } from 'react';
+import React, { useMemo, useState, useRef, useEffect, useCallback, useEffectEvent, forwardRef, useImperativeHandle, ForwardedRef } from 'react';
 import styled from 'styled-components';
 import type {
     IMutField,
@@ -222,18 +222,47 @@ function CopyButton(props: { value: string }) {
     );
 }
 
-function TruncateDector(props: { value: string }) {
-    const ref = useRef<HTMLAnchorElement>(null);
+export function TruncateDector(props: { value: string }) {
     const [isTruncate, setIsTruncate] = useState(false);
     const [open, setOpen] = useState(false);
-    useEffect(() => {
-        if (ref.current) {
-            setIsTruncate(ref.current.offsetWidth < ref.current.scrollWidth);
+    const triggerNodeRef = useRef<HTMLElement | null>(null);
+
+    const updateTruncation = useEffectEvent(() => {
+        const node = triggerNodeRef.current;
+        if (!node) {
+            return;
         }
-    }, [ref.current]);
+
+        setIsTruncate(node.offsetWidth < node.scrollWidth);
+    });
+
+    const triggerRef = useCallback((node: HTMLElement | null) => {
+        if (!node) {
+            triggerNodeRef.current = null;
+            setIsTruncate(false);
+            return;
+        }
+        triggerNodeRef.current = node;
+
+        updateTruncation();
+        const observer = new ResizeObserver(updateTruncation);
+        observer.observe(node);
+
+        return () => {
+            observer.disconnect();
+            if (triggerNodeRef.current === node) {
+                triggerNodeRef.current = null;
+            }
+        };
+    }, [updateTruncation]);
+
+    useEffect(() => {
+        updateTruncation();
+    }, [props.value, updateTruncation]);
+
     return (
         <HoverCard open={open && isTruncate} onOpenChange={setOpen}>
-            <HoverCardTrigger ref={ref} className="truncate block">
+            <HoverCardTrigger ref={triggerRef} className="truncate block" data-truncated={isTruncate ? 'true' : 'false'}>
                 {props.value}
             </HoverCardTrigger>
             <HoverCardContent className="flex space-x-2 items-center w-fit py-2 px-3">

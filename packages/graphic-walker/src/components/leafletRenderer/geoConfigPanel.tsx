@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useVizStore } from '../../store';
 import Spinner from '../spinner';
@@ -11,6 +11,7 @@ import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+import { readTextFile } from './readTextFile';
 
 const emptyList = [];
 
@@ -72,6 +73,40 @@ const GeoConfigPanel = ({ geoList = emptyList }: { geoList?: IGeoDataItem[] }) =
     useEffect(() => {
         setGeoJSON(geojson ? JSON.stringify(geojson, null, 2) : '');
     }, [geojson]);
+
+    const handleLoadFromUrl = useEffectEvent(() => {
+        if (!url) {
+            return;
+        }
+
+        setLoading(true);
+        fetch(url)
+            .then((res) => res.json())
+            .then((json) => {
+                (dataMode === 'GeoJSON' ? setGeoJSON : setTopoJSON)(JSON.stringify(json, null, 2));
+                setLoadedUrl({ type: dataMode, url });
+                setLoading(false);
+            })
+            .catch(() => {
+                setLoading(false);
+            });
+    });
+
+    const handleDrop = useEffectEvent((acceptedFiles: File[]) => {
+        const file = acceptedFiles[0];
+        if (!file) {
+            return;
+        }
+
+        void readTextFile(file)
+            .then((data) => {
+                setLoadedUrl(undefined);
+                (dataMode === 'GeoJSON' ? setGeoJSON : setTopoJSON)(data);
+            })
+            .catch((error) => {
+                console.error('Failed to read geographic data file', error);
+            });
+    });
 
     const handleSubmit = () => {
         if (!isCustom) {
@@ -185,39 +220,14 @@ const GeoConfigPanel = ({ geoList = emptyList }: { geoList?: IGeoDataItem[] }) =
                                     <Button
                                         className="mr-2 flex-shrink-0"
                                         disabled={loading}
-                                        onClick={() => {
-                                            if (url) {
-                                                setLoading(true);
-                                                fetch(url)
-                                                    .then((res) => res.json())
-                                                    .then((json) => {
-                                                        (dataMode === 'GeoJSON' ? setGeoJSON : setTopoJSON)(JSON.stringify(json, null, 2));
-                                                        setLoadedUrl({ type: dataMode, url });
-                                                        setLoading(false);
-                                                    })
-                                                    .catch(() => {
-                                                        setLoading(false);
-                                                    });
-                                            }
-                                        }}
+                                        onClick={handleLoadFromUrl}
                                     >
                                         {loading && <Spinner />}
                                         {t('geography_settings.load')}
                                     </Button>
                                 </div>
                                 <Dropzone
-                                    onDrop={(acceptedFiles) => {
-                                        const f: File = acceptedFiles[0];
-                                        if (f) {
-                                            const reader = new FileReader();
-                                            reader.addEventListener('load', (event) => {
-                                                const data = event.target!.result as string;
-                                                setLoadedUrl(undefined);
-                                                (dataMode === 'GeoJSON' ? setGeoJSON : setTopoJSON)(data);
-                                            });
-                                            reader.readAsText(f);
-                                        }
-                                    }}
+                                    onDrop={handleDrop}
                                     noClick
                                 >
                                     {({ getRootProps, getInputProps, isDragActive, open }) => (

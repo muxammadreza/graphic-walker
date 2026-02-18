@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react';
-import { createRoot } from 'react-dom/client';
 import { createMemoryProvider } from './dataSourceProvider/memory';
 import { IGWProps } from './interfaces';
 import { DataSourceSegmentComponent } from './dataSource';
 import { GraphicRenderer, GraphicWalker, ILocalTableProps, ILocalVizAppProps, IRemoteTableProps, IRemoteVizAppProps, TableWalker } from './root';
 import PureRenderer, { ILocalPureRendererProps, IRemotePureRendererProps } from './renderer/pureRenderer';
+import { renderEmbeddedNode, unmountEmbeddedRoot } from './utils/reactRootRegistry';
 
 function FullGraphicWalker(props: IGWProps) {
     const provider = useMemo(() => createMemoryProvider(), []);
@@ -38,11 +38,11 @@ export function embedGraphicWalker(dom, props: IGWProps | ILocalVizAppProps | IR
     }
 
     if (hasData(props)) {
-        createRoot(dom).render(<GraphicWalker themeKey="g2" {...props} />);
+        renderEmbeddedNode(dom, <GraphicWalker themeKey="g2" {...props} />, 'embed');
         return;
     }
 
-    createRoot(dom).render(<FullGraphicWalker themeKey="g2" {...props} />);
+    renderEmbeddedNode(dom, <FullGraphicWalker themeKey="g2" {...props} />, 'embed');
 }
 
 export function embedGraphicRenderer(dom: HTMLElement | null, props: ILocalVizAppProps | undefined);
@@ -52,7 +52,7 @@ export function embedGraphicRenderer(dom, props = {}) {
         throw 'DOM element not found.';
     }
 
-    createRoot(dom).render(<GraphicRenderer themeKey="g2" {...props} />);
+    renderEmbeddedNode(dom, <GraphicRenderer themeKey="g2" {...props} />, 'renderer');
 }
 
 export function embedTableWalker(dom: HTMLElement | null, props: ILocalTableProps | undefined);
@@ -62,7 +62,7 @@ export function embedTableWalker(dom, props = {}) {
         throw 'DOM element not found.';
     }
 
-    createRoot(dom).render(<TableWalker themeKey="g2" {...props} />);
+    renderEmbeddedNode(dom, <TableWalker themeKey="g2" {...props} />, 'table');
 }
 
 export function embedPureRenderer(dom: HTMLElement | null, props: ILocalPureRendererProps);
@@ -72,5 +72,21 @@ export function embedPureRenderer(dom, props) {
         throw 'DOM element not found.';
     }
 
-    createRoot(dom).render(<PureRenderer themeKey="g2" {...props} />);
+    renderEmbeddedNode(dom, <PureRenderer themeKey="g2" {...props} />, 'pure-renderer');
+}
+
+export function unmountEmbeddedGraphicWalker(dom: HTMLElement | null): void {
+    unmountEmbeddedRoot(dom);
+}
+
+export function unmountEmbeddedGraphicRenderer(dom: HTMLElement | null): void {
+    unmountEmbeddedRoot(dom);
+}
+
+export function unmountEmbeddedTableWalker(dom: HTMLElement | null): void {
+    unmountEmbeddedRoot(dom);
+}
+
+export function unmountEmbeddedPureRenderer(dom: HTMLElement | null): void {
+    unmountEmbeddedRoot(dom);
 }

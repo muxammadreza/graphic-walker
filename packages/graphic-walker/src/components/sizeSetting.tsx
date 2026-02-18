@@ -1,5 +1,5 @@
 import { ArrowsPointingOutIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useEffectEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDebounceValueBind } from '../hooks';
 import { Slider } from './ui/slider';
@@ -61,12 +61,12 @@ const SizeSetting: React.FC<SizeSettingProps> = (props) => {
     const [show, setShow] = useState<boolean>(false);
     const { t } = useTranslation('translation', { keyPrefix: 'main.tabpanel.settings.size_setting' });
 
+    const closeDialog = useEffectEvent(() => {
+        setShow(false);
+    });
+
     useEffect(() => {
         if (show) {
-            const closeDialog = () => {
-                setShow(false);
-            };
-
             let subscribed = false;
             const timer = setTimeout(() => {
                 subscribed = true;

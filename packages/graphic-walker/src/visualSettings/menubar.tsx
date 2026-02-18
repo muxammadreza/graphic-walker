@@ -12,10 +12,14 @@ export const useShortcut = (shortcut: string, handler: () => void) => {
         };
     }, [shortcut]);
 
+    const onShortcut = React.useEffectEvent(() => {
+        handler();
+    });
+
     React.useEffect(() => {
         const cb = (ev: KeyboardEvent) => {
             if (ev.ctrlKey === rule.ctrlKey && ev.shiftKey === rule.shiftKey && ev.altKey === rule.altKey && ev.key.toLowerCase() === rule.key.toLowerCase()) {
-                handler();
+                onShortcut();
                 ev.stopPropagation();
             }
         };
@@ -23,5 +27,5 @@ export const useShortcut = (shortcut: string, handler: () => void) => {
         document.body.addEventListener('keydown', cb);
 
         return () => document.body.removeEventListener('keydown', cb);
-    }, [rule, handler]);
+    }, [rule]);
 };

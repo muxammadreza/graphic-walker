@@ -33,8 +33,6 @@ interface EditableTabsProps {
 const Slider = (props: { className?: string; children: React.ReactNode }) => {
     const [x, setX] = useState(0);
     const ref = useRef<HTMLDivElement>(null);
-    const parentDisposeRef = useRef<() => void>(null);
-    const childDisposeRef = useRef<() => void>(null);
 
     const onWheel = useCallback((e: WheelEvent) => {
         e.preventDefault();
@@ -48,11 +46,12 @@ const Slider = (props: { className?: string; children: React.ReactNode }) => {
     }, []);
 
     const refCB = useCallback(
-        (node) => {
-            parentDisposeRef.current?.();
-            if (node == null) {
+        (node: HTMLDivElement | null) => {
+            if (node === null) {
+                ref.current = null;
                 return;
             }
+
             const r = new ResizeObserver((es) => {
                 for (const e of es) {
                     const parentWidth = e.contentRect.width;
@@ -62,22 +61,27 @@ const Slider = (props: { className?: string; children: React.ReactNode }) => {
                     }
                 }
             });
+
             r.observe(node);
             ref.current = node;
             node.addEventListener('wheel', onWheel, { passive: false });
-            parentDisposeRef.current = () => {
+
+            return () => {
                 r.disconnect();
-                ref.current?.removeEventListener('wheel', onWheel);
+                node.removeEventListener('wheel', onWheel);
+                if (ref.current === node) {
+                    ref.current = null;
+                }
             };
         },
         [onWheel],
     );
 
-    const childRefCB = useCallback((node: HTMLDivElement) => {
-        childDisposeRef.current?.();
+    const childRefCB = useCallback((node: HTMLDivElement | null) => {
         if (node === null) {
             return;
         }
+
         const r = new ResizeObserver((es) => {
             for (const e of es) {
                 const parentWidth = ref.current?.getBoundingClientRect().width;
@@ -87,10 +91,12 @@ const Slider = (props: { className?: string; children: React.ReactNode }) => {
                 }
             }
         });
-        childDisposeRef.current = () => {
+
+        r.observe(node);
+
+        return () => {
             r.disconnect();
         };
-        r.observe(node);
     }, []);
 
     return (
