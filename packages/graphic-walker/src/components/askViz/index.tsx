@@ -88,7 +88,7 @@ const AskViz: React.FC<{
             typeof props.api === 'function' ? Promise.resolve(props.api(allFields, query)) : vizQuery(props.api || api, allFields, query, props.headers ?? {});
         request
             .then((data) => {
-                vizStore.appendFromCode(data);
+                vizStore.replaceWithNLPQuery(query, JSON.stringify(data));
                 vizStore.setAskvizFeedback(true);
                 setLastData({ question: query, data: JSON.stringify(data) });
                 setAskVizFeedback('vote');

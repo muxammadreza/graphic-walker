@@ -116,8 +116,8 @@ const actions: {
             to === 'dimensions'
                 ? mutPath(oriField, 'analyticType', () => 'dimension')
                 : to === 'measures'
-                  ? mutPath(oriField, 'analyticType', () => 'measure')
-                  : oriField;
+                    ? mutPath(oriField, 'analyticType', () => 'measure')
+                    : oriField;
         return mutPath(data, 'encodings', (e) => ({
             ...e,
             [from]: remove(data.encodings[from], findex),
@@ -237,19 +237,19 @@ const actions: {
                     },
                     ...(format
                         ? [
-                              {
-                                  type: 'format',
-                                  value: format,
-                              } as const,
-                          ]
+                            {
+                                type: 'format',
+                                value: format,
+                            } as const,
+                        ]
                         : []),
                     ...(isNotEmpty(offset)
                         ? [
-                              {
-                                  type: 'offset',
-                                  value: offset,
-                              } as const,
-                          ]
+                            {
+                                type: 'offset',
+                                value: offset,
+                            } as const,
+                        ]
                         : []),
                 ],
             },
@@ -279,19 +279,19 @@ const actions: {
                     },
                     ...(format
                         ? [
-                              {
-                                  type: 'format',
-                                  value: format,
-                              } as const,
-                          ]
+                            {
+                                type: 'format',
+                                value: format,
+                            } as const,
+                        ]
                         : []),
                     ...(isNotEmpty(offset)
                         ? [
-                              {
-                                  type: 'offset',
-                                  value: offset,
-                              } as const,
-                          ]
+                            {
+                                type: 'offset',
+                                value: offset,
+                            } as const,
+                        ]
                         : []),
                 ],
             },
@@ -343,10 +343,10 @@ const actions: {
             'facets' in map
                 ? { op: 'paint', as: PAINT_FIELD_ID, params: [{ type: 'newmap', value: map }] }
                 : {
-                      op: 'paint',
-                      as: PAINT_FIELD_ID,
-                      params: [{ type: 'map', value: map }],
-                  };
+                    op: 'paint',
+                    as: PAINT_FIELD_ID,
+                    params: [{ type: 'map', value: map }],
+                };
         const hasErased = map.usedColor.includes(255);
         return mutPath(data, 'encodings', (enc) => {
             let hasPaintField = false;
@@ -482,7 +482,7 @@ const actions: {
         );
     },
     [Methods.replaceWithNLPQuery]: (data, _query, response) => {
-        return { ...JSON.parse(response), visId: data.visId, name: data.name };
+        return { ...parseChart(JSON.parse(response)), visId: data.visId, name: data.name };
     },
 };
 
@@ -551,8 +551,8 @@ export { freeze };
 export const performers = Object.fromEntries(
     (Object.keys(Methods) as (keyof typeof Methods)[]).map((k) => [k, (data: any, ...args: any[]) => perform(data, [Methods[k], ...args] as any)]),
 ) as unknown as {
-    [K in keyof typeof Methods]: (data: VisSpecWithHistory, ...args: PropsMap[(typeof Methods)[K]]) => VisSpecWithHistory;
-};
+        [K in keyof typeof Methods]: (data: VisSpecWithHistory, ...args: PropsMap[(typeof Methods)[K]]) => VisSpecWithHistory;
+    };
 
 function emptyChart(visId: string, name: string, defaultConfig?: IDefaultConfig): IChart {
     return {

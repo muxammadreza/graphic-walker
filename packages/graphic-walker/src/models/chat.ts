@@ -322,12 +322,13 @@ export function toChatMessage(history: VisSpecWithHistory): IChatMessage[] {
     for (let i = 0; i < history.cursor; i++) {
         const method = history.timeline[i];
         if (method[0] === Methods.replaceWithNLPQuery) {
-            const [_, query, response] = method;
+            const [_, query] = method;
             createGeneratedMessages();
             result.push({ role: 'user', content: query, type: 'normal' });
+            now = reducer(now, method);
             result.push({
                 role: 'assistant',
-                chart: JSON.parse(response),
+                chart: now,
                 type: 'normal',
             });
         } else {
@@ -339,8 +340,8 @@ export function toChatMessage(history: VisSpecWithHistory): IChatMessage[] {
                     message += `\n${actionMessage}`;
                 }
             }
+            now = reducer(now, method);
         }
-        now = reducer(now, method);
     }
     createGeneratedMessages();
     return result;
