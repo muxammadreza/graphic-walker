@@ -1,0 +1,24 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "outputs": ["dist/**", "public/chartinfo.json", "public/stoinfo_v2.json"]
+    },
+    "lint": {
+      "extends": false
+    },
+    "smoke": {
+      "extends": false
+    },
+    "dev": {
+      "cache": false
+    },
+    "typecheck": {
+      "outputs": []
+    },
+    "test": {
+      "outputs": []
+    }
+  }
+}

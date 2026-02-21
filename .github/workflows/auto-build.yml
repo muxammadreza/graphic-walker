@@ -16,6 +16,4 @@ jobs:
       - name: Install deps
         run: bun install --frozen-lockfile
       - name: Graphic Walker package build
-        run: bun run build:gw
-      - name: Web app (playground) build
-        run: bun run build:playground
+        run: bun run build

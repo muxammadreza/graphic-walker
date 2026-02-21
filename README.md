@@ -95,16 +95,16 @@ Examples here: [Graphic Walker Examples](https://graphic-walker.kanaries.net/exa
 
 ### Method 1: use as an independent app.
 ```bash
-yarn install
+bun install
 
-yarn workspace @kanaries/graphic-walker build
+bun run --filter @kanaries/graphic-walker build
 ```
 
 ### Method 2: Use as an embedding component module 🔥
 Using graphic walker can be extremely easy. It provides a single React component which allows you to easily embed it in your app.
 
 ```bash
-yarn add @kanaries/graphic-walker
+bun add @kanaries/graphic-walker
 
 # or
 

@@ -79,9 +79,9 @@ Graphic Walker 是一个非常规的tableau的开源替代，它可以帮助数�
 按照应用的构建步骤依次执行。
 
 ```bash
-yarn install
+bun install
 
-yarn workspace @kanaries/graphic-walker build:app
+bun run --filter @kanaries/graphic-walker build:app
 ```
 
 ###  方法二：作为嵌入模块使用
@@ -91,7 +91,7 @@ yarn workspace @kanaries/graphic-walker build:app
 `graphic-walker`提供了非常简单易用的集成方式，你只需要像引入react组件一样，将其引入，即可立即开始使用。
 
 ```bash
-yarn add @kanaries/graphic-walker
+bun add @kanaries/graphic-walker
 
 # or
 
@@ -137,7 +137,7 @@ export default YourChart;
 
 首先安装`graphic-walker`：
 ```bash
-yarn add @kanaries/graphic-walker
+bun add @kanaries/graphic-walker
 
 # or
 

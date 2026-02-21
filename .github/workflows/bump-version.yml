@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       newVersion:
-        description: 'New version number for graphic-walker'
+        description: "New version number for graphic-walker"
         required: true
-        default: '1.0.1'
+        default: "1.0.1"
 
 jobs:
   bump-version:
@@ -33,10 +33,6 @@ jobs:
 
           const updates = [
             ['packages/graphic-walker/package.json', (pkg) => { pkg.version = version }],
-            ['packages/playground/package.json', (pkg) => {
-              pkg.dependencies = pkg.dependencies || {}
-              pkg.dependencies['@kanaries/graphic-walker'] = version
-            }],
             ['packages/duckdb-wasm-computation/package.json', (pkg) => {
               pkg.devDependencies = pkg.devDependencies || {}
               pkg.peerDependencies = pkg.peerDependencies || {}
@@ -67,8 +63,8 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
-          commit-message: Sync graphic-walker and playground versions to ${{ github.event.inputs.newVersion }}
-          title: 'Sync graphic-walker and playground package versions to ${{ github.event.inputs.newVersion }}'
-          body: 'This is an auto-generated PR to update the graphic-walker version and its dependency in playground.'
+          commit-message: Sync graphic-walker and duckdb versions to ${{ github.event.inputs.newVersion }}
+          title: "Sync graphic-walker and duckdb package versions to ${{ github.event.inputs.newVersion }}"
+          body: "This is an auto-generated PR to update the graphic-walker and duckdb package versions."
           branch: sync-versions-${{ github.event.inputs.newVersion }}
           labels: version-sync, automated pr

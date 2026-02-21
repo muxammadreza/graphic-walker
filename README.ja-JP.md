@@ -77,9 +77,9 @@ Graphic Walker は編集した結果をファイルとして保存すること�
 ### 方法１：本リポジトリを配置
 
 ```bash
-yarn install
+bun install
 
-yarn workspace @kanaries/graphic-walker build
+bun run --filter @kanaries/graphic-walker build
 ```
 
 ### 方法２：あなたの Web アプリに実装 
@@ -87,7 +87,7 @@ yarn workspace @kanaries/graphic-walker build
 Graphic Walker の埋め込みは非常に簡単です。まずはインストールです。
 
 ```bash
-yarn add @kanaries/graphic-walker
+bun add @kanaries/graphic-walker
 
 # or
 

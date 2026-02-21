@@ -13,6 +13,7 @@
         "module": "ESNext",
         "moduleResolution": "bundler",
         "resolveJsonModule": true,
+        "types": ["node"],
         "isolatedModules": true,
         "jsx": "react",
         "declaration": true,
